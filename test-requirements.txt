@@ -1,0 +1,4 @@
+python-dotenv
+pytest
+pytest-cov
+pylint-pytest
