@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block nonauth_content %}
+<p> hello world
+{% endblock %}
+
+
+{% block content %}
+    <p>This is what the JWT contains currently. See all <a style="color: #009486;" href="/users">users</a> from database.</p>
+    <div style="padding: 8px 16px; background: #161618; border-radius: 6px;">
+        <pre style="max-width: 800px; white-space: pre-wrap;">{{ json.dumps(request.user, indent=4) }}</pre>
+    </div>
+{% endblock %}
+
+

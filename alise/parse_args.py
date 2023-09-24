@@ -31,13 +31,11 @@ def parseOptions():
     print("Replace this message by putting your code into alise.parse_args.py")
     return parser
 
-print(f"sys.argv: {sys.argv}")
-
 # reparse args on import, unless pytest
 if "_pytest" in sys.modules:
     args = {}
 elif "uvicorn" in sys.modules:
-    print("ignoring args for uvicorn")
+    # print("ignoring args for uvicorn")
     args = {}
 else:
     # print("args parsed")

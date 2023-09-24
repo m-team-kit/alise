@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>ALISE</title>
+</head>
+<body style="margin: 0; display: flex; flex-direction: column; background: #1e1e20; color: #dfdfd6; font-family: sans-serif;">
+<header style="display: flex; background: #161618; height: 100px; width: 100%;">
+    <div style="display: flex; align-items: center; margin: auto 50px auto auto;">
+
+        {% block login_options%}
+            {% if request.user.is_authenticated %}
+                <a href="/oauth2/logout" style="text-decoration: none; color: #dfdfd6; margin-right: 20px;">Sign out</a>
+                {% if request.user.picture %}
+                    <img style="height: 90px; width: 90px;" src="{{ request.user.picture }}" alt="Pic">
+                {% else %}
+                    <img style="height: 90px; width: .0px;" src="static/user-avatar.png" alt="Pic">
+                {% endif %}
+
+            {% else %}
+                {% for provider in request.auth.clients %}
+                    <!-- FIXME: only some providers -->
+                    <a href="/oauth2/{{ provider }}/authorize" style="display: flex; align-items: center;">
+                        <img
+                                alt="{{ provider }} icon"
+                                src="/static/{{ provider }}.svg"
+                                style="width: 90px; height: 90px; margin-right: 1rem;"
+                        >
+                    </a>
+                        &nbsp;&nbsp;&nbsp;
+                {% endfor %}
+            {% endif %}
+        {% endblock %}
+    </div>
+</header>
+
+<section
+        style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 170px); padding: 50px 0;">
+
+
+    <!-- {% if request.user.is_authenticated %} -->
+    <!--     <h3> You are authenticated</h> -->
+    <!-- {% endif %} -->
+    <!--  -->
+    <!-- {% if request.user.is_authenticated_as_internal %} -->
+    <!--     <h3> You are an INTERNAL user</h> -->
+    <!-- {% endif %} -->
+
+    {% block logged_in_or_not %}
+
+        {% if request.user.is_authenticated %}
+
+            <h1>Hi, {{ request.user.display_name }}</h1>
+            <p style="margin-bottom: 0;">
+                Your last login used "{{ request.auth.provider.provider }}"&nbsp;&nbsp;&nbsp;
+                (<a href="/oauth2/{{ request.auth.provider.provider }}/authorize">relogin</a>)
+            </p>
+            {% block content %}{% endblock %}
+
+        {% else %}
+
+            <h1>You are not authenticated</h1>
+            <p>You should sign in using one of the OAuth options</p>
+            {% block nonauth_content %} {% endblock %}
+
+        {% endif %}
+
+    {% endblock %}
+    
+
+</section>
+</body>
+</html>

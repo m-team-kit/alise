@@ -90,7 +90,8 @@ def reload_parser():
     """
     files = []
 
-    basename = os.path.basename(sys.argv[0]).rstrip(".py")
+    # basename = os.path.basename(sys.argv[0]).rstrip(".py")
+    basename = "daemon"
     dirname = os.path.dirname(__file__)
 
     # If the program has arguments with a config: prefer it:
@@ -250,12 +251,23 @@ class ConfigMessages(ConfigSection):
     def __section__name__(cls):
         return "messages"
 
+@dataclass
+class ConfigDatabase(ConfigSection):
+    """Config section for database settings"""
+
+    db_name: str = "alise"
+
+    @classmethod
+    def __section__name__(cls):
+        return "database"
+
 
 @dataclass
 class Configuration:
     """All configuration settings for the alise"""
 
     messages: ConfigMessages = field(default_factory=ConfigMessages)
+    database: ConfigDatabase = field(default_factory=ConfigDatabase)
     test: ConfigTest = field(default_factory=ConfigTest)
 
     @classmethod

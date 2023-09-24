@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+
+{% block login_options %}
+{% endblock %}
+
+{% block logged_in_or_not %}
+    <h1> ALISE
+        <img
+                alt="alise"
+                src="/static/logo.svg"
+                style="width: 90px; height: 90px; margin-right: 1rem;"
+        >
+    </h1>
+    Welcome to ALISE, the friendly Account LInking SErvices.<br/>
+    <p>Please choose the Computer Centre for which you want to do account
+    linking:
+
+    <div style="display: flex; align-items: center; ">
+        {% for provider in internal_providers %}
+            <a href="/{{ provider }}" style="display: flex; align-items: center;">
+                <img
+                        alt="{{ provider }} icon"
+                        src="/static/{{ provider }}.svg"
+                        style="width: 150px; height: 150px; margin-right: 50px; margin-left: 50px"
+                >
+            </a>
+        {% endfor %}
+    </div>
+    
+{% endblock %}
+
+
+{% block nonauth_content %}
+<p> hello world
+{% endblock %}
+
+
+{% block content %}
+    <p>This is what the JWT contains currently. See all <a style="color: #009486;" href="/users">users</a> from database.</p>
+    <div style="padding: 8px 16px; background: #161618; border-radius: 6px;">
+        <pre style="max-width: 800px; white-space: pre-wrap;">{{ json.dumps(request.user, indent=4) }}</pre>
+    </div>
+{% endblock %}
+
+

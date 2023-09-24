@@ -1,1 +1,4 @@
-
+fastapi
+flaat
+fastapi-oauth2
+addict
