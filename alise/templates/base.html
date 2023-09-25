@@ -8,37 +8,17 @@
     <title>ALISE</title>
 </head>
 <body style="margin: 0; display: flex; flex-direction: column; background: #1e1e20; color: #dfdfd6; font-family: sans-serif;">
-<header style="display: flex; background: #161618; height: 100px; width: 100%;">
+<header style="display: flex; background: #161618; height: 100px; width: 100%; ">
     <div style="display: flex; align-items: center; margin: auto 50px auto auto;">
 
-        {% block login_options%}
-            {% if request.user.is_authenticated %}
-                <a href="/oauth2/logout" style="text-decoration: none; color: #dfdfd6; margin-right: 20px;">Sign out</a>
-                {% if request.user.picture %}
-                    <img style="height: 90px; width: 90px;" src="{{ request.user.picture }}" alt="Pic">
-                {% else %}
-                    <img style="height: 90px; width: .0px;" src="static/user-avatar.png" alt="Pic">
-                {% endif %}
+        <!-- ALISE LOGO -->
+        <img style="height: 100px; width: 110px;" src="static/logo.svg" alt="ALISE"> <h1>ALISE &nbsp;</h1>Welcome to the <br/>wonderful<br/> world of <br/>account linking
 
-            {% else %}
-                {% for provider in request.auth.clients %}
-                    <!-- FIXME: only some providers -->
-                    <a href="/oauth2/{{ provider }}/authorize" style="display: flex; align-items: center;">
-                        <img
-                                alt="{{ provider }} icon"
-                                src="/static/{{ provider }}.svg"
-                                style="width: 90px; height: 90px; margin-right: 1rem;"
-                        >
-                    </a>
-                        &nbsp;&nbsp;&nbsp;
-                {% endfor %}
-            {% endif %}
-        {% endblock %}
     </div>
 </header>
 
 <section
-        style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 170px); padding: 50px 0;">
+        style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 270px); padding: 50px 0;">
 
 
     <!-- {% if request.user.is_authenticated %} -->
@@ -73,7 +53,6 @@
     {% if request.user.linkage_available %}
         {% block linkage_information %} {% endblock %}
     {% endif %}
-    
 
 </section>
 </body>
