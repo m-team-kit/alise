@@ -1,4 +1,5 @@
 # vim: tw=100 foldmethod=indent
+# pylint: disable=logging-fstring-interpolation
 import json
 
 from fastapi import APIRouter
@@ -27,6 +28,7 @@ async def site(request: Request, site: str):
     logger.info(f"-----------------[{site}]-------------------------------------------------")
     cookies = []
 
+    # favicon
     if site == "favicon.ico":
         logger.debug("Returning favicon.ico")
         return FileResponse("static/favicon.ico")
@@ -47,11 +49,21 @@ async def site(request: Request, site: str):
             f"  {provider_type}"
         )
 
-    # redirect user straight to provider, if not authenticated
+    # redirect user straight to login at provider, if not authenticated
     if not request.user.is_authenticated:
-        redirect_uri = f"/oauth2/{site}/authorize"
-        logger.debug(f"Redirecting back to {redirect_uri}")
-        return RedirectResponse(redirect_uri)
+        redirect_auth = f"/oauth2/{site}/authorize"
+        logger.debug(f"Redirecting back to {redirect_auth}")
+        response = RedirectResponse(redirect_auth)
+        # and also set the cookie so user gets sent to right page, when coming back
+
+        # Redirect URI
+        if request.url.__str__()[-11:] != "favicon.ico":
+            logger.info(f"storing redirect_uri: {request.url.__str__()}")
+            response.set_cookie(key="redirect_uri", value=request.url.__str__(), max_age=60)
+        else:
+            loger.info("ffffffffffffffffffaaaaaaaaaaaaaaaaavvvvvvvvvvvviiiiiiiiiiiiiiiccccccccccoooooooooooonnnnnnnnnnn")
+
+        return response
 
     ####### authenticated user from here on ########################################################
     user = DatabaseUser(site)
@@ -69,12 +81,6 @@ async def site(request: Request, site: str):
         session_id = request.user.identity
         logger.info(f"setting session id: {session_id}")
     cookies.append({"key": "session-id", "value": session_id})
-
-    # Redirect URI
-    if request.url.__str__()[-11:] != "favicon.ico":
-        if provider_type == "internal":
-            logger.info(f"storing redirect_uri: {request.url.__str__()}")
-            cookies.append({"key": "redirect_uri", "value": request.url.__str__()})
 
     # Store user information in user object and database
     if provider_type == "internal":
