@@ -37,10 +37,14 @@ async def site(request: Request, site: str):
         logger.info(f"    {i:13}- {request.cookies.get(i, '')}")
     logger.info(f"[Authenticated]: {request.user.is_authenticated}")
     if request.user.is_authenticated:
+        try:
+            provider_type = request.auth.provider.backend.provider_type
+        except AttributeError:
+            provider_type = "external"
         logger.info(f"    identity: {request.user.identity}")
         logger.info(
             f"    provider: {request.auth.provider.provider},"
-            f"  {request.auth.provider.backend.provider_type}"
+            f"  {provider_type}"
         )
 
     # redirect user straight to provider, if not authenticated
@@ -55,7 +59,7 @@ async def site(request: Request, site: str):
     # session_id
     session_id = request.cookies.get("session-id", "")
     # FIXME: Make sure we can get that session id from any user id
-    db_session_id = user.get_session_id_by_user_id(request.user.identity, request.auth.provider.backend.provider_type)
+    db_session_id = user.get_session_id_by_user_id(request.user.identity, provider_type)
     if db_session_id != session_id:
         logger.warning("SESSION ID MISMATCH:")
         logger.warning(F"    cookie: {session_id}")
@@ -68,12 +72,12 @@ async def site(request: Request, site: str):
 
     # Redirect URI
     if request.url.__str__()[-11:] != "favicon.ico":
-        if request.auth.provider.backend.provider_type == "internal":
+        if provider_type == "internal":
             logger.info(f"storing redirect_uri: {request.url.__str__()}")
             cookies.append({"key": "redirect_uri", "value": request.url.__str__()})
 
     # Store user information in user object and database
-    if request.auth.provider.backend.provider_type == "internal":
+    if provider_type == "internal":
         request.user.is_authenticated_as_internal = True
         # for attr in dir(request.user):
         #     logger.info(F"request.user: {attr:30} - {getattr(request.user, attr, '')}")
@@ -102,7 +106,7 @@ async def site(request: Request, site: str):
         logger.debug(F"user: {e.identity}")
         logger.debug(F"    : {e.jsondata.identity}")
 
-    retval = templates.TemplateResponse(
+    response = templates.TemplateResponse(
         "site.html",
         {
             "json": json,
@@ -112,9 +116,9 @@ async def site(request: Request, site: str):
         },
     )
     for cookie in cookies:
-        retval.set_cookie(key=cookie["key"], value=cookie["value"], max_age=2592000)
+        response.set_cookie(key=cookie["key"], value=cookie["value"], max_age=2592000)
 
-    return retval
+    return response
 
 
 @router_ssr.get("/", response_class=HTMLResponse)
@@ -132,7 +136,7 @@ async def root(request: Request):
             logger.debug(f"Redirecting back to {redirect_uri}")
             return RedirectResponse(redirect_uri)
 
-    retval = templates.TemplateResponse(
+    response = templates.TemplateResponse(
         "root.html",
         {
             "json": json,
@@ -140,7 +144,7 @@ async def root(request: Request):
             "internal_providers": get_internal_providers(),
         },
     )
-    return retval
+    return response
 
 
 # from fastapi_oauth2.security import OAuth2
