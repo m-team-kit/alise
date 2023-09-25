@@ -5,7 +5,7 @@ import requests
 from dotenv import load_dotenv
 
 # from social_core.backends.github import GithubOAuth2
-# from social_core.backends.google import GoogleOAuth2
+from social_core.backends.google import GoogleOAuth2
 
 # from social_core.backends.elixir import ElixirOpenIdConnect
 from social_core.backends.open_id_connect import OpenIdConnectAuth
@@ -174,16 +174,29 @@ oauth2_config = OAuth2Config(
                 identity=lambda user: f"{user.provider}:{user.sub}",
             ),
         ),
+        OAuth2Client(
+            backend=GoogleOAuth2,
+            client_id="633995513993-oa4hcbu3t17dqmpnlvj8capln8038cu2.apps.googleusercontent.com",
+            client_secret="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",
+            scope=["openid", "profile", "email"],
+            claims=Claims(
+                identity=lambda user: f"{user.provider}:{user.sub}",
+            ),
+        ),
     ],
 )
 
 
 def get_providers(provider_type):
-    return [
-        x.backend.name
-        for x in oauth2_config.clients
-        if x.backend.provider_type == provider_type
-    ]
+    names = []
+    for x in oauth2_config.clients:
+        try:
+            if x.backend.provider_type == provider_type:
+                names.append(x.backend.name)
+        except AttributeError:
+            if provider_type == "external":  # external providers may not
+                names.append(x.backend.name) # explicitly define this attribute
+    return names
 
 
 def get_internal_providers():
