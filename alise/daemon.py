@@ -3,6 +3,7 @@
 # pylint: disable = logging-fstring-interpolation, unused-import
 
 import uvicorn
+import sys
 
 from alise.logsetup import logger
 from alise.config import CONFIG
@@ -53,6 +54,7 @@ async def on_auth(auth: Auth, user: User):
 app = FastAPI()
 
 app.include_router(router_ssr)
+app.include_router(router_api)
 
 # app.include_router(marcus_oauth2_router) # overwrite oauth2/{provider}/token endpoint
 app.include_router(oauth2_router)
@@ -74,7 +76,8 @@ def main():
 
 
     # uvicorn.run(root, host="0.0.0.0", port=4711)
-    uvicorn.run(root, host="0.0.0.0", port=8000, log_level="info")
+    # uvicorn.run(root, host="0.0.0.0", port=8000, log_level="info")
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
 
 
 
