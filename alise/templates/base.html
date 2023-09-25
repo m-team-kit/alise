@@ -69,6 +69,10 @@
         {% endif %}
 
     {% endblock %}
+
+    {% if request.user.linkage_available %}
+        {% block linkage_information %} {% endblock %}
+    {% endif %}
     
 
 </section>

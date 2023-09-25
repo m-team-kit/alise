@@ -26,6 +26,17 @@
             </a>
         {% endfor %}
     </div>
+{% endblock %}
+
+{% block linkage_information %}
+    aaaaaaaaaaaaaaaaaaaaaa>>
+    <ul>
+        {% for e in user.ext_ids %}
+            <li> {{ e.identity }} </li>
+        {% endfor %}
+    </ul>
+    oooooooooooooooooooooooooooo
+
 
 
 {% endblock %}
