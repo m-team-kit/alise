@@ -58,7 +58,8 @@ app.include_router(router_ssr)
 app.include_router(oauth2_router)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-app.add_middleware(OAuth2Middleware, config=oauth2_config, callback=on_auth)
+# app.add_middleware(OAuth2Middleware, config=oauth2_config, callback=on_auth)
+app.add_middleware(OAuth2Middleware, config=oauth2_config)
 
 logger.debug('===============================================================')
 
