@@ -2,6 +2,7 @@
 
 import requests
 
+import os
 from dotenv import load_dotenv
 
 # from social_core.backends.github import GithubOAuth2
@@ -120,26 +121,26 @@ class FakeInternalOpenIdConnect(OpenIdConnectAuth):
 
 oauth2_config = OAuth2Config(
     allow_http=True,
-    # jwt_secret="JWT_SECRET",
-    # jwt_expires=900,
-    # jwt_algorithm="HS256",
+    jwt_secret="secret",
+    jwt_expires=900,
+    jwt_algorithm="HS256",
     # jwt_secret=os.getenv("JWT_SECRET"),
     # jwt_expires=os.getenv("JWT_EXPIRES"),
     # jwt_algorithm=os.getenv("JWT_ALGORITHM"),
     clients=[
         OAuth2Client(
             backend=HelmholtzOpenIdConnect,
-            client_id="alise",
-            client_secret="4C4RuLeQK5pUcjVFVHCWdac",
-            scope=["openid", "profile", "email", "eduperson_assurance"],
+            client_id=os.getenv("HELMHOLTZ_CLIENT_ID"),
+            client_secret=os.getenv("HELMHOLTZ_CLIENT_SECRET"),
+            scope=["openid", "profile", "email", "eduperson_assurance", "voperson_id", "iss"],
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
             ),
         ),
         OAuth2Client(
             backend=EGIOpenIdConnect,
-            client_id="alise",
-            client_secret="4C4RuLeQK5pUcjVFVHCWdac",
+            client_id=os.getenv("EGI_CLIENT_ID"),
+            client_secret=os.getenv("EGI_CLIENT_SECRET"),
             scope=["openid", "profile", "email", "eduperson_assurance"],
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
@@ -147,8 +148,8 @@ oauth2_config = OAuth2Config(
         ),
         OAuth2Client(
             backend=VegaKeycloakOpenIdConnect,
-            client_id="it-test",
-            client_secret="huSGzbRAukUv4xRMtAyuiCqiCXfE5ku1",
+            client_id=os.getenv("VEGA_CLIENT_ID"),
+            client_secret=os.getenv("VEGA_CLIENT_SECRET"),
             scope=[
                 "openid",
                 "profile",
@@ -167,8 +168,8 @@ oauth2_config = OAuth2Config(
         ),
         OAuth2Client(
             backend=FakeInternalOpenIdConnect,
-            client_id="alise",
-            client_secret="4C4RuLeQK5pUcjVFVHCWdac",
+            client_id=os.getenv("FAKE_CLIENT_ID"),
+            client_secret=os.getenv("FAKE_CLIENT_SECRET"),
             scope=["openid", "profile", "email"],
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
@@ -176,8 +177,8 @@ oauth2_config = OAuth2Config(
         ),
         OAuth2Client(
             backend=GoogleOAuth2,
-            client_id="633995513993-oa4hcbu3t17dqmpnlvj8capln8038cu2.apps.googleusercontent.com",
-            client_secret="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",
+            client_id=os.getenv("_CLIENT_ID"),
+            client_secret=os.getenv("_CLIENT_SECRET"),
             scope=["openid", "profile", "email"],
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
@@ -195,7 +196,7 @@ def get_providers(provider_type):
                 names.append(x.backend.name)
         except AttributeError:
             if provider_type == "external":  # external providers may not
-                names.append(x.backend.name) # explicitly define this attribute
+                names.append(x.backend.name)  # explicitly define this attribute
     return names
 
 
