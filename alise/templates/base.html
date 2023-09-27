@@ -34,10 +34,11 @@
         {% if request.user.is_authenticated %}
 
             <h1>Hi, {{ request.user.display_name }}</h1>
-            <p style="margin-bottom: 0;">
-                Your last login used "{{ request.auth.provider.provider }}"&nbsp;&nbsp;&nbsp;
-                (<a href="/oauth2/{{ request.auth.provider.provider }}/authorize">relogin</a>)
-            </p>
+
+            <!-- <small style="margin-bottom: 0;"> -->
+            <!--     Your last login used "{{ request.auth.provider.provider }}"&nbsp;&nbsp;&nbsp; -->
+            <!--     (<a href="/oauth2/{{ request.auth.provider.provider }}/authorize">relogin</a>) -->
+            <!-- </small> -->
             {% block content %}{% endblock %}
 
         {% else %}
@@ -49,10 +50,6 @@
         {% endif %}
 
     {% endblock %}
-
-    {% if request.user.linkage_available %}
-        {% block linkage_information %} {% endblock %}
-    {% endif %}
 
 </section>
 </body>

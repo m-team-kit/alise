@@ -13,30 +13,34 @@
     <!-- </div> -->
 
 
-    <p>Please choose the identity which you want to link to your account:
+    <p>Your are logged in to <br/><img src="/static/{{current_site}}.svg"
+    style="width: 150px; height: 150px; margin-right: 50px;  "</img>
+
+    <p>Please choose an identity to link to your account:
 
     <div style="display: flex; align-items: center; ">
+        <table>
         {% for provider in external_providers %}
-            <a href="oauth2/{{ provider }}/authorize" style="display: flex; align-items: center;">
+        <tr><td><a href="oauth2/{{ provider.name }}/authorize" style="display: flex; align-items: center;">
                 <img
-                        alt="{{ provider }} icon"
-                        src="/static/{{ provider }}.svg"
-                        style="width: 150px; height: 150px; margin-right: 50px; margin-left: 50px"
-                >
-            </a>
+                        alt="{{ provider.name }} icon"
+                        src="/static/{{ provider.name }}.svg"
+                        style="width: 80px; height: 80px; margin-right: 50px; margin-left: 50px"
+                > </a>
+            </td>
+            <td>
+                {% if not provider.is_linked %}
+                Not linked. 
+                <a href="{{current_site}}/link/{{ provider.name }}">Link identity</a>
+                {% else %}
+                Linked.
+                <a href="{{current_site}}/unlink/{{ provider.name }}">Unlink identity</a>
+                {% endif %}
+            </td>
+        </tr>
         {% endfor %}
     </div>
 {% endblock %}
 
-{% block linkage_information %}
-    <ul>
-        {% for e in user.ext_ids %}
-            <li> {{ e.identity }} </li>
-        {% endfor %}
-    </ul>
-
-
-
-{% endblock %}
 
 
