@@ -8,13 +8,13 @@ import sys
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from fastapi_oauth2.middleware import Auth
-from fastapi_oauth2.middleware import OAuth2Middleware
 from fastapi_oauth2.router import router as oauth2_router
 
 from alise.logsetup import logger
 from alise.config import CONFIG
 from alise.parse_args import args
+
+from alise.pathdiversion import SSROAuth2Middleware
 
 from alise.oauth2_config import oauth2_config
 from alise.router_api import router_api
@@ -22,21 +22,28 @@ from alise.router_ssr import router_ssr
 # from alise.marcus_oauth2 import router as marcus_oauth2_router
 
 
+
 app = FastAPI()
-app2 = FastAPI()
 
 app.include_router(router_ssr)
-app2.include_router(router_api)
-
-# app.include_router(marcus_oauth2_router) # overwrite oauth2/{provider}/token endpoint
+app.include_router(router_api)
 app.include_router(oauth2_router)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-app.mount("/api", app2)
+for r in router_api.routes:
+    logger.debug(F"router_api.routes: {r}")
+logger.debug(F"router_api.routes: {type(router_api.routes)}")
+for r in router_ssr.routes:
+    logger.debug(F"router_ssr.routes: {r}")
+logger.debug(F"router_ssr.routes: {type(router_ssr.routes)}")
 
 # app.add_middleware(OAuth2Middleware, config=oauth2_config, callback=on_auth)
-app.add_middleware(OAuth2Middleware, config=oauth2_config)
+# app.add_middleware(OAuth2Middleware, config=oauth2_config)
+
+
+# app.add_middleware(SSROAuth2Middleware, config=oauth2_config, callback=on_auth)
+app.add_middleware(SSROAuth2Middleware, config=oauth2_config)
 
 logger.debug("===============================================================")
 
