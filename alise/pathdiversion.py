@@ -12,6 +12,7 @@ from starlette.types import Send
 
 from alise.router_api import router_api
 
+
 class SSROAuth2Middleware(BaseHTTPMiddleware):
     def __init__(self, app, config, callback=None):
         super().__init__(app)
@@ -26,5 +27,3 @@ class SSROAuth2Middleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint):
         return await call_next(request)
-
-

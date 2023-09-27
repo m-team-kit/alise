@@ -11,15 +11,17 @@ from alise.logsetup import logger
 
 
 def dict_factory(cursor, row):
-    '''helper for json export from sqlite'''
+    """helper for json export from sqlite"""
     d = Dict()
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
     return d
 
+
 class Base:
-    SCHEMA=[]
-    site_name=""
+    SCHEMA = []
+    site_name = ""
+
     def __init__(self):
         if not self.site_name:
             self.site_name = "root"

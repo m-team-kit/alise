@@ -19,8 +19,8 @@ from alise.pathdiversion import SSROAuth2Middleware
 from alise.oauth2_config import oauth2_config
 from alise.router_api import router_api
 from alise.router_ssr import router_ssr
-# from alise.marcus_oauth2 import router as marcus_oauth2_router
 
+# from alise.marcus_oauth2 import router as marcus_oauth2_router
 
 
 app = FastAPI()
@@ -32,11 +32,11 @@ app.include_router(oauth2_router)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 for r in router_api.routes:
-    logger.debug(F"router_api.routes: {r}")
-logger.debug(F"router_api.routes: {type(router_api.routes)}")
+    logger.debug(f"router_api.routes: {r}")
+logger.debug(f"router_api.routes: {type(router_api.routes)}")
 for r in router_ssr.routes:
-    logger.debug(F"router_ssr.routes: {r}")
-logger.debug(F"router_ssr.routes: {type(router_ssr.routes)}")
+    logger.debug(f"router_ssr.routes: {r}")
+logger.debug(f"router_ssr.routes: {type(router_ssr.routes)}")
 
 # app.add_middleware(OAuth2Middleware, config=oauth2_config, callback=on_auth)
 # app.add_middleware(OAuth2Middleware, config=oauth2_config)

@@ -132,7 +132,14 @@ oauth2_config = OAuth2Config(
             backend=HelmholtzOpenIdConnect,
             client_id=os.getenv("HELMHOLTZ_CLIENT_ID"),
             client_secret=os.getenv("HELMHOLTZ_CLIENT_SECRET"),
-            scope=["openid", "profile", "email", "eduperson_assurance", "voperson_id", "iss"],
+            scope=[
+                "openid",
+                "profile",
+                "email",
+                "eduperson_assurance",
+                "voperson_id",
+                "iss",
+            ],
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
             ),

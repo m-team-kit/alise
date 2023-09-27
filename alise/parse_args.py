@@ -31,6 +31,7 @@ def parseOptions():
     print("Replace this message by putting your code into alise.parse_args.py")
     return parser
 
+
 # reparse args on import, unless pytest
 if "_pytest" in sys.modules:
     args = {}

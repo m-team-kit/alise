@@ -251,6 +251,7 @@ class ConfigMessages(ConfigSection):
     def __section__name__(cls):
         return "messages"
 
+
 @dataclass
 class ConfigDatabase(ConfigSection):
     """Config section for database settings"""
