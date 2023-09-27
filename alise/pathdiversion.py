@@ -1,5 +1,7 @@
 # vim: tw=100 foldmethod=indent
 # pylint: disable = logging-fstring-interpolation, unused-import
+
+from fastapi_oauth2.middleware import OAuth2Middleware
 from fastapi import Request
 from starlette.datastructures import URL
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -7,6 +9,8 @@ from starlette.middleware.base import RequestResponseEndpoint
 from starlette.types import Receive
 from starlette.types import Scope
 from starlette.types import Send
+
+from alise.router_api import router_api
 
 class SSROAuth2Middleware(BaseHTTPMiddleware):
     def __init__(self, app, config, callback=None):
