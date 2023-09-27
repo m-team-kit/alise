@@ -8,6 +8,7 @@ from fastapi import Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 
+from addict import Dict
 
 from alise.oauth2_config import get_internal_providers
 from alise.oauth2_config import get_external_providers
@@ -33,8 +34,10 @@ def get_provider_type(request):
 
 def session_logger(request):
     logger.info(f"----------[{request.url}]------------------------------------------")
+    # for attr in dir(request):
+    #     logger.info(F"request: {attr:30} - {getattr(request, attr, '')}")
     logger.info("[Cookies]")
-    for i in ["session-id", "redirect_uri"]:
+    for i in ["Authorization", "session-id", "redirect_uri"]:
         logger.info(f"    {i:13}- {request.cookies.get(i, '')}")
     logger.info(f"[Authenticated]: {request.user.is_authenticated}")
     if request.user.is_authenticated:
@@ -90,39 +93,77 @@ async def site(request: Request, site: str):
     # Store user information in user object and database
     if provider_type == "internal":
         request.user.is_authenticated_as_internal = True
-        # for attr in dir(request.user):
-        #     logger.info(F"request.user: {attr:30} - {getattr(request.user, attr, '')}")
 
         user.store_internal_user(request.user, session_id)
     else:  # user is authenticated, but not an internal one
         # request.user.identity = "this is a test"
         user.store_external_user(request.user, session_id)
-        request.user.linkage_available = True
 
-        # Linkage done
+    # Linkage done
 
+    # Act on linkage
     user.load_all_identities(session_id)
-    logger.debug(f"user (int_id): {user.int_id.identity}")
+    # logger.debug(f"user (int_id): {user.int_id.identity}")
 
-    for e in user.ext_ids:
-        logger.debug(f"user (ext_id): {e.identity}")
-        logger.debug(f"     (ext_id.jsondata): {e.jsondata.identity}")
+    # store linkage information with external_providers dict
+    external_providers = []
+
+    for ep in get_external_providers():
+        external_providers.append(Dict())
+        external_providers[-1].name = ep
+        external_providers[-1].is_linked = False
+        for ext_id in user.ext_ids:
+            # logger.debug(f"user (ext_id): {ext_id.identity}")
+            if ext_id.jsondata.provider == ep:
+                external_providers[-1].is_linked = True
+                # logger.info(f"im linked to this provider {ext_id.jsondata.provider}")
 
     response = templates.TemplateResponse(
         "site.html",
         {
             "json": json,
             "request": request,
-            "external_providers": get_external_providers(),
+            "external_providers": external_providers,
             "user": user,
+            "current_site": site,
         },
     )
     for cookie in cookies:
         response.set_cookie(key=cookie["key"], value=cookie["value"], max_age=2592000)
 
-    # delete redirect_uri
-    response.delete_cookie(key="redirect_uri")
+    # # delete redirect_uri
+    # response.delete_cookie(key="redirect_uri")
 
+    return response
+
+
+@router_ssr.get("/{site}/unlink/{provider}", response_class=HTMLResponse)
+async def unlink(request: Request, site: str, provider: str):
+    session_logger(request)
+
+    should_redirect_to = "/".join(request.url.__str__().split("/")[0:4])
+
+    response = RedirectResponse("/oauth2/logout")
+    response.set_cookie(key="redirect_uri", value=should_redirect_to)
+
+    user = DatabaseUser(site)
+    session_id = request.cookies.get("session-id", "")
+    if not session_id:
+        logger.error("cannot find user identity in this session!!!!!!!!!!!!!!!!!!")
+
+    identity = user.get_identity_by_session_id(session_id, provider)
+    logger.info(f"going to delete: identity: {identity} provider: {provider}")
+    user.delete_external_user(identity, provider)
+    return response
+
+
+@router_ssr.get("/{site}/link/{provider}", response_class=HTMLResponse)
+async def unlink(request: Request, site: str, provider: str):
+    session_logger(request)
+
+    should_redirect_to = "/".join(request.url.__str__().split("/")[0:4])
+    response = RedirectResponse(f"/oauth2/{provider}/authorize")
+    response.set_cookie(key="redirect_uri", value=should_redirect_to)
     return response
 
 
@@ -135,13 +176,21 @@ async def root(request: Request):
     # logger.info(f"redirect url: {url}")
 
     redirect_uri = request.cookies.get("redirect_uri", "")
-    logger.debug(f"redirect_uri (from cookie): {redirect_uri}")
+    if redirect_uri:
+        logger.info("redirecting to {redirect_uri}")
+        response = RedirectResponse(redirect_uri)
+        response.delete_cookie(key="redirect_uri")
+        return response
+
     logger.debug(f"session_id: {request.user.identity}")
     if request.user.is_authenticated:
         if redirect_uri:
             logger.debug(f"Redirecting back to {redirect_uri}")
             response = RedirectResponse(redirect_uri)
             response.set_cookie(key="session-id", value=request.user.identity)
+            logger.info("deleteing redirect uri cookie")
+            response.delete_cookie(key="redirect_uri")
+            # response.delete_cookie(key="Authorization")
             return response
 
     response = templates.TemplateResponse(
