@@ -62,14 +62,15 @@ def setup_logging():
     logger.setLevel(loglevel)
 
     # turn off logging noise:
+    my_level = logging.CRITICAL
     logging.getLogger().setLevel(logging.DEBUG)
-    logging.getLogger("flask_pyoidc").setLevel(logging.ERROR)
-    logging.getLogger("oic").setLevel(logging.ERROR)
-    logging.getLogger("jwkest").setLevel(logging.ERROR)
-    logging.getLogger("urllib3").setLevel(logging.ERROR)
-    logging.getLogger("werkzeug").setLevel(logging.ERROR)
-    logging.getLogger("flaat").setLevel(logging.ERROR)
-    logging.getLogger("httpx").setLevel(logging.ERROR)
+    logging.getLogger("flask_pyoidc").setLevel(my_level)
+    logging.getLogger("oic").setLevel(my_level)
+    logging.getLogger("jwkest").setLevel(my_level)
+    logging.getLogger("urllib3").setLevel(my_level)
+    logging.getLogger("werkzeug").setLevel(my_level)
+    logging.getLogger("flaat").setLevel(my_level)
+    logging.getLogger("httpx").setLevel(my_level)
     return logger
 
 
