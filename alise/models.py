@@ -46,8 +46,8 @@ class LastPage(Base):
 
 class DatabaseUser(Base):
     SCHEMA = [
-        "CREATE table if not exists int_user (session_id TEXT, identity TEXT, jsonstr JSON)",
-        "CREATE table if not exists ext_user (session_id TEXT, identity TEXT, jsonstr JSON)",
+        "CREATE table if not exists int_user (session_id TEXT, identity TEXT, provider TEXT, jsonstr JSON)",
+        "CREATE table if not exists ext_user (session_id TEXT, identity TEXT, provider TEXT, jsonstr JSON)",
         "CREATE table if not exists sites (name TEXT, comment TEXT)",
     ]
 
@@ -57,8 +57,9 @@ class DatabaseUser(Base):
 
         # each identity consists of
         # - jsondata (= request.user)
-        self.int_id = Dict() 
+        self.int_id = Dict()
         self.ext_ids = []
+        self.session_id = ""
 
     def store_internal_user(self, jsondata, session_id):
         self.int_id = jsondata
@@ -66,7 +67,8 @@ class DatabaseUser(Base):
             self.store_user(self.int_id, "int", session_id)
         else:
             # FIXME: update the user!!
-            logger.warning("not storing user, as we have that already")
+            logger.warning("not storing user, UPDATING")
+            self.update_user(self.int_id, "int")
 
     def store_external_user(self, jsondata, session_id):
         self.ext_ids.append(Dict())
@@ -75,7 +77,8 @@ class DatabaseUser(Base):
             self.store_user(self.ext_ids[-1], "ext", session_id)
         else:
             # FIXME: update the user!!
-            logger.warning("not storing user, as we have that already")
+            logger.warning("not storing user, UPDATING")
+            self.update_user(self.ext_ids[-1], "ext")
 
     def store_user(self, jsondata, location, session_id):
         try:
@@ -86,32 +89,77 @@ class DatabaseUser(Base):
             logger.error(json.dumps(jsondata, sort_keys=True, indent=4))
             raise
 
+        logger.debug(f" ----------> provider: {jsondata.provider}")
         self._db_query(
-            f"INSERT OR REPLACE into {location}_user values(?, ?, ?)",
+            f"INSERT OR REPLACE into {location}_user values(?, ?, ?, ?)",
             (
                 session_id,
                 identity,
+                jsondata.provider,
                 jsonstr,
             ),
         )
+
+    def update_user(self, jsondata, location):
+        try:
+            identity = jsondata.identity.__str__()
+            jsonstr = json.dumps(jsondata, sort_keys=True, indent=4)
+        except AttributeError as e:
+            logger.error(f"cannot find attribute:   {e}")
+            logger.error(json.dumps(jsondata, sort_keys=True, indent=4))
+            raise
+
+        self._db_query(
+            f"UPDATE {location}_user set jsonstr = ? WHERE identity=?",
+            (jsonstr, identity),
+        )
+
+    def delete_external_user(self, identity, provider):
+        logger.info(f"deleting linkage to {provider} for {identity}")
+        location = "ext"
+        self._db_query(
+            f"DELETE FROM {location}_user WHERE identity=? AND provider=?",
+            (identity, provider),
+        )
+        logger.info(
+            f"delete by:    DELETE FROM {location}_user WHERE identity={identity} AND provider={provider}"
+        )
+
+    def get_identity_by_session_id(self, session_id, provider, location="ext"):
+        short_location = location[0:3]
+        # logger.debug(f"returning session_id for user {identity}")
+
+        res = self._db_query(
+            f"SELECT * from {location}_user WHERE session_id=? and provider=?",
+            (session_id, provider),
+        )
+
+        if len(res) > 1:
+            logger.error("found more than one result for query")
+            raise Exception
+        if len(res) == 0:
+            logger.error("found no result for query")
+            raise Exception
+        # logger.debug(rv)
+        return res[-1].identity
+
     def get_session_id_by_user_id(self, identity, location="int"):
         short_location = location[0:3]
         # logger.debug(f"returning session_id for user {identity}")
         rv = self.get_user(identity, db_key="identity", location=short_location)
         # logger.debug(rv)
-        return  rv.session_id
+        return rv.session_id
 
-    def get_session_id_by_internal_user_id(self, identity):
-        logger.debug(f"returning session_id for user {identity}")
-        rv = self.get_user(identity, db_key="identity", location="int")
-        # logger.debug(rv)
-        return  rv.sesion_id
+    # def get_session_id_by_internal_user_id(self, identity):
+    #     logger.debug(f"returning session_id for user {identity}")
+    #     rv = self.get_user(identity, db_key="identity", location="int")
+    #     # logger.debug(rv)
+    #     return  rv.sesion_id
 
     def load_all_identities(self, session_id):
         self.int_id = self.get_user(session_id, "session_id", "int")
         self.ext_ids = self.get_users(session_id, "session_id", "ext")
         # logger.debug(F"self.int_id: {self.int_id}")
-
 
     def get_internal_user(self, identity):
         return self.get_user(identity, db_key="identity", location="int")
@@ -121,9 +169,7 @@ class DatabaseUser(Base):
 
     def get_user(self, value, db_key, location):
         rv = self.get_users(value, db_key, location)[-1]
-        # logger.debug(f"rv: {rv}")
-        return  rv
-
+        return rv
 
     def get_users(self, value, db_key, location):
         # logger.debug(f"db_key: {db_key}")
@@ -135,14 +181,14 @@ class DatabaseUser(Base):
         res = self._db_query(f"SELECT * from {location}_user WHERE {db_key}=?", [value])
         if len(res) == 0:
             return Dict()
-        logger.debug(f"length of results: {len(res)} - {location}")
+        # logger.debug(f"length of results: {len(res)} - {location}")
         rv = []
         for r in res:
             rv.append(Dict())
             for k in keys:
                 rv[-1][k] = r[k]
             rv[-1].jsondata = Dict(json.loads(rv[-1].jsonstr))
-            del(rv[-1].jsonstr)
+            del rv[-1].jsonstr
         return rv
 
     def _is_user_in_db(self, identity, location):
