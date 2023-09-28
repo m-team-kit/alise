@@ -24,6 +24,10 @@ from alise.logsetup import logger
 router_ssr = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
+# There are a few different conceptions I'm using in this code:
+# request.user.is_authenticated is merely an information on whether the request.user object contains
+# information. Interesting for the ALISE use-case is whether or not we can find a (much longer
+# living) session_id in the cookies
 
 def get_provider_type(request):
     try:
@@ -37,7 +41,7 @@ def session_logger(request):
     # for attr in dir(request):
     #     logger.info(F"request: {attr:30} - {getattr(request, attr, '')}")
     logger.info("[Cookies]")
-    for i in ["Authorization", "session-id", "redirect_uri"]:
+    for i in ["Authorization", "session_id", "redirect_uri"]:
         logger.info(f"    {i:13}- {request.cookies.get(i, '')}")
     logger.info(f"[Authenticated]: {request.user.is_authenticated}")
     if request.user.is_authenticated:
@@ -75,7 +79,7 @@ async def site(request: Request, site: str):
     user = DatabaseUser(site)
 
     # session_id
-    session_id = request.cookies.get("session-id", "")
+    session_id = request.cookies.get("session_id", "")
     # FIXME: Make sure we can get that session id from any user id
     provider_type = get_provider_type(request)
 
@@ -88,7 +92,7 @@ async def site(request: Request, site: str):
         # if request.user.is_authenticated:
         session_id = request.user.identity
         logger.info(f"setting session id: {session_id}")
-    cookies.append({"key": "session-id", "value": session_id})
+    cookies.append({"key": "session_id", "value": session_id})
 
     # Store user information in user object and database
     if provider_type == "internal":
@@ -147,7 +151,7 @@ async def unlink(request: Request, site: str, provider: str):
     response.set_cookie(key="redirect_uri", value=should_redirect_to)
 
     user = DatabaseUser(site)
-    session_id = request.cookies.get("session-id", "")
+    session_id = request.cookies.get("session_id", "")
     if not session_id:
         logger.error("cannot find user identity in this session!!!!!!!!!!!!!!!!!!")
 
@@ -170,7 +174,7 @@ async def unlink(request: Request, site: str, provider: str):
 @router_ssr.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     session_logger(request)
-    # session_id = request.cookies.get("session-id", "")
+    # session_id = request.cookies.get("session_id", "")
     # lp = LastPage()
     # url = lp.get(session_id)
     # logger.info(f"redirect url: {url}")
@@ -187,7 +191,7 @@ async def root(request: Request):
         if redirect_uri:
             logger.debug(f"Redirecting back to {redirect_uri}")
             response = RedirectResponse(redirect_uri)
-            response.set_cookie(key="session-id", value=request.user.identity)
+            response.set_cookie(key="session_id", value=request.user.identity)
             logger.info("deleteing redirect uri cookie")
             response.delete_cookie(key="redirect_uri")
             # response.delete_cookie(key="Authorization")
