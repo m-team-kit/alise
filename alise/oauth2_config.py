@@ -5,6 +5,8 @@ import requests
 import os
 from dotenv import load_dotenv
 
+from urllib.parse import quote_plus
+
 # from social_core.backends.github import GithubOAuth2
 from social_core.backends.google import GoogleOAuth2
 
@@ -31,12 +33,12 @@ load_dotenv()
 
 # make sure OIDC_ENDPOINT is defined
 class MyGoogleOAuth2(GoogleOAuth2):
-    OIDC_ENDPOINT = "https://accounts.google.com/"
+    OIDC_ENDPOINT = os.getenv("GOOGLE_ISS")
 
 
 class HelmholtzOpenIdConnect(OpenIdConnectAuth):
     name = "helmholtz"
-    OIDC_ENDPOINT = "https://login.helmholtz.de/oauth2"
+    OIDC_ENDPOINT = os.getenv("HELMHOLTZ_ISS")
     ID_TOKEN_ISSUER = OIDC_ENDPOINT
     provider_type = "external"
 
@@ -58,7 +60,7 @@ class HelmholtzOpenIdConnect(OpenIdConnectAuth):
 
 class EGIOpenIdConnect(OpenIdConnectAuth):
     name = "egi"
-    OIDC_ENDPOINT = "https://aai.egi.eu/auth/realms/egi"
+    OIDC_ENDPOINT = os.getenv("EGI_ISS")
     ID_TOKEN_ISSUER = OIDC_ENDPOINT
     provider_type = "external"
 
@@ -80,7 +82,7 @@ class EGIOpenIdConnect(OpenIdConnectAuth):
 
 class VegaKeycloakOpenIdConnect(OpenIdConnectAuth):
     name = "vega-kc"
-    OIDC_ENDPOINT = "https://sso.sling.si:8443/auth/realms/SLING"
+    OIDC_ENDPOINT = os.getenv("VEGA_ISS")
     ID_TOKEN_ISSUER = OIDC_ENDPOINT
     provider_type = "internal"
 
@@ -102,7 +104,7 @@ class VegaKeycloakOpenIdConnect(OpenIdConnectAuth):
 
 class FelsInternalOpenIdConnect(OpenIdConnectAuth):
     name = "kit-fels"
-    OIDC_ENDPOINT = "https://fels.scc.kit.edu/oidc/realms/fels"
+    OIDC_ENDPOINT = os.getenv("FELS_ISS")
     ID_TOKEN_ISSUER = OIDC_ENDPOINT
     provider_type = "internal"
 
@@ -145,6 +147,7 @@ oauth2_config = OAuth2Config(
             ],
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
+                # identity=lambda user: f"{quote_plus(os.getenv('HELMHOLTZ_ISS'))}@{quote_plus(user.sub)}",
             ),
         ),
         OAuth2Client(
@@ -154,6 +157,17 @@ oauth2_config = OAuth2Config(
             scope=["openid", "profile", "email", "eduperson_assurance"],
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
+                # identity=lambda user: f"{os.getenv('EGI_ISS')}@{user.sub}",
+            ),
+        ),
+        OAuth2Client(
+            backend=MyGoogleOAuth2,
+            client_id=os.getenv("GOOGLE_CLIENT_ID"),
+            client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+            scope=["openid", "profile", "email"],
+            claims=Claims(
+                identity=lambda user: f"{user.provider}:{user.sub}",
+                # identity=lambda user: f"{os.getenv('GOOGLE_ISS')}@{user.sub}",
             ),
         ),
         OAuth2Client(
@@ -174,6 +188,8 @@ oauth2_config = OAuth2Config(
             ],
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
+                generated_username=lambda user: f"{user.upn}",
+                # identity=lambda user: f"{quote_plus(os.getenv('VEGA_ISS'))}@{quote_plus(user.sub)}",
             ),
         ),
         OAuth2Client(
@@ -183,19 +199,39 @@ oauth2_config = OAuth2Config(
             scope=["openid", "profile", "email"],
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
-            ),
-        ),
-        OAuth2Client(
-            backend=MyGoogleOAuth2,
-            client_id=os.getenv("GOOGLE_CLIENT_ID"),
-            client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
-            scope=["openid", "profile", "email"],
-            claims=Claims(
-                identity=lambda user: f"{user.provider}:{user.sub}",
+                generated_username=lambda user: f"{user.sub}",
+                # identity=lambda user: f"{os.getenv('FELS_ISS')}@{user.sub}",
             ),
         ),
     ],
 )
+
+
+def get_provider_iss_by_name(name: str) -> str:
+    for x in oauth2_config.clients:
+        if x.backend.name == name:
+            return x.backend.OIDC_ENDPOINT
+    # FIXME: am I sure not to return ""
+    return name
+
+
+def get_provider_name_by_iss(iss: str) -> str:
+    for x in oauth2_config.clients:
+        if x.backend.OIDC_ENDPOINT == iss:
+            return x.backend.name
+    # FIXME: am I sure not to return ""
+    return iss
+
+
+def get_sub_iss_by_identity(identity):
+    provider_name, sub = identity.split(":")
+    iss = get_provider_iss_by_name(provider_name)
+    return (sub, iss)
+
+
+def get_provider_name_sub_by_identity(identity):
+    provider_name, sub = identity.split(":")
+    return (provider_name, sub)
 
 
 def get_providers(provider_type):
