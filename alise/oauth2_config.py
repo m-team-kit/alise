@@ -29,6 +29,10 @@ CONFIG_KEY_MAP = {
 
 load_dotenv()
 
+# make sure OIDC_ENDPOINT is defined
+class MyGoogleOAuth2(GoogleOAuth2):
+    OIDC_ENDPOINT = "https://accounts.google.com/"
+
 
 class HelmholtzOpenIdConnect(OpenIdConnectAuth):
     name = "helmholtz"
@@ -45,7 +49,7 @@ class HelmholtzOpenIdConnect(OpenIdConnectAuth):
         USERINFO_URL = autoconf["userinfo_endpoint"]
         JWKS_URI = autoconf["jwks_uri"]
     except KeyError as e:
-        logger.error(f"Cannot find {e} in \n{autoconf}")
+        logger.error(f"Cannot find {e} for {name}")
     logger.debug(f"Initialised {name}")
 
     def setting(self, name, default=None):
@@ -67,7 +71,7 @@ class EGIOpenIdConnect(OpenIdConnectAuth):
         USERINFO_URL = autoconf["userinfo_endpoint"]
         JWKS_URI = autoconf["jwks_uri"]
     except KeyError as e:
-        logger.error(f"Cannot find {e} in \n{autoconf}")
+        logger.error(f"Cannot find {e} for {name}")
     logger.debug(f"Initialised {name}")
 
     def setting(self, name, default=None):
@@ -89,17 +93,16 @@ class VegaKeycloakOpenIdConnect(OpenIdConnectAuth):
         USERINFO_URL = autoconf["userinfo_endpoint"]
         JWKS_URI = autoconf["jwks_uri"]
     except KeyError as e:
-        logger.error(f"Cannot find {e} in \n{autoconf}")
+        logger.error(f"Cannot find {e} for {name}")
     logger.debug(f"Initialised {name}")
 
     def setting(self, name, default=None):
         return getattr(self, name, default)
 
 
-class FakeInternalOpenIdConnect(OpenIdConnectAuth):
-    name = "fake-internal"
-    # OIDC_ENDPOINT = "https://not-existent"
-    OIDC_ENDPOINT = "https://sso.sling.si:8443/auth/realms/SLING"
+class FelsInternalOpenIdConnect(OpenIdConnectAuth):
+    name = "kit-fels"
+    OIDC_ENDPOINT = "https://fels.scc.kit.edu/oidc/realms/fels"
     ID_TOKEN_ISSUER = OIDC_ENDPOINT
     provider_type = "internal"
 
@@ -112,7 +115,7 @@ class FakeInternalOpenIdConnect(OpenIdConnectAuth):
         USERINFO_URL = autoconf["userinfo_endpoint"]
         JWKS_URI = autoconf["jwks_uri"]
     except KeyError as e:
-        logger.error(f"Cannot find {e} in \n{autoconf}")
+        logger.error(f"Cannot find {e} for {name}")
     logger.debug(f"Initialised {name}")
 
     def setting(self, name, default=None):
@@ -174,18 +177,18 @@ oauth2_config = OAuth2Config(
             ),
         ),
         OAuth2Client(
-            backend=FakeInternalOpenIdConnect,
-            client_id=os.getenv("FAKE_CLIENT_ID"),
-            client_secret=os.getenv("FAKE_CLIENT_SECRET"),
+            backend=FelsInternalOpenIdConnect,
+            client_id=os.getenv("FELS_CLIENT_ID"),
+            client_secret=os.getenv("FELS_CLIENT_SECRET"),
             scope=["openid", "profile", "email"],
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
             ),
         ),
         OAuth2Client(
-            backend=GoogleOAuth2,
-            client_id=os.getenv("_CLIENT_ID"),
-            client_secret=os.getenv("_CLIENT_SECRET"),
+            backend=MyGoogleOAuth2,
+            client_id=os.getenv("GOOGLE_CLIENT_ID"),
+            client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
             scope=["openid", "profile", "email"],
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
