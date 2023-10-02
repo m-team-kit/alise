@@ -12,8 +12,10 @@ from addict import Dict
 
 from alise.oauth2_config import get_internal_providers
 from alise.oauth2_config import get_external_providers
+from alise.exceptions import InternalException
 
 from alise.models import DatabaseUser
+from alise.utils import base64_decode
 
 # from alise.models import LastPage
 
@@ -29,6 +31,7 @@ templates = Jinja2Templates(directory="templates")
 # information. Interesting for the ALISE use-case is whether or not we can find a (much longer
 # living) session_id in the cookies
 
+
 def get_provider_type(request):
     try:
         return request.auth.provider.backend.provider_type
@@ -42,6 +45,7 @@ def session_logger(request):
     #     logger.info(F"request: {attr:30} - {getattr(request, attr, '')}")
     logger.info("[Cookies]")
     for i in ["Authorization", "session_id", "redirect_uri"]:
+    # for i in ["session_id", "redirect_uri"]:
         logger.info(f"    {i:13}- {request.cookies.get(i, '')}")
     logger.info(f"[Authenticated]: {request.user.is_authenticated}")
     if request.user.is_authenticated:
@@ -54,6 +58,8 @@ def session_logger(request):
 
 @router_ssr.get("/{site}", response_class=HTMLResponse)
 async def site(request: Request, site: str):
+    # get cookie info
+    session_id = request.cookies.get("session_id", "")
     cookies = []
 
     # favicon
@@ -64,25 +70,39 @@ async def site(request: Request, site: str):
     # logging
     session_logger(request)
     # redirect user straight to login at provider, if not authenticated
-    if not request.user.is_authenticated:
-        redirect_auth = f"/oauth2/{site}/authorize"
-        logger.debug(f"Redirecting to authorize: {redirect_auth}")
-        response = RedirectResponse(redirect_auth)
-        # and also set the cookie so user gets sent to right page, when coming back
+    if not session_id:
+        if not request.user.is_authenticated:
+            redirect_auth = f"/oauth2/{site}/authorize"
+            logger.debug(f"Redirecting to authorize: {redirect_auth}")
+            response = RedirectResponse(redirect_auth)
+            # and also set the cookie so user gets sent to right page, when coming back
 
-        # Redirect URI
-        logger.info(f"storing redirect_uri: {request.url.__str__()}")
-        response.set_cookie(key="redirect_uri", value=request.url.__str__(), max_age=60)
-        return response
+            # Redirect URI
+            logger.info(f"storing redirect_uri: {request.url.__str__()}")
+            response.set_cookie(key="redirect_uri", value=request.url.__str__(), max_age=60)
+            return response
 
     ####### authenticated user from here on ########################################################
     user = DatabaseUser(site)
 
-    # session_id
-    session_id = request.cookies.get("session_id", "")
+    # FIXME: clean this mess up
+
+    # for attr in dir(request.auth.provider.backend):
+    #     logger.info(
+    #         f"request.auth.provider.backend.{attr:30} - {getattr(request.auth.provider.backend, attr, '')}"
+    #     )
+    try:
+        iss = request.auth.provider.backend.OIDC_ENDPOINT
+        logger.info(f"found iss in backend config: {iss}")
+    except AttributeError:
+        raise InternalException(message="iss claim not found")
+    logger.info(f"iss: {iss}")
+
+
     # FIXME: Make sure we can get that session id from any user id
     provider_type = get_provider_type(request)
 
+    # Linkage
     db_session_id = user.get_session_id_by_user_id(request.user.identity, provider_type)
     if db_session_id != session_id:
         logger.warning("SESSION ID MISMATCH:")
@@ -103,6 +123,7 @@ async def site(request: Request, site: str):
         # request.user.identity = "this is a test"
         user.store_external_user(request.user, session_id)
 
+    logger.warning(f"CHECK SESSION ID!: {session_id}")
     # Linkage done
 
     # Act on linkage
