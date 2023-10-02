@@ -143,11 +143,15 @@ class DatabaseUser(Base):
         # logger.debug(rv)
         return res[-1].identity
 
-    def get_session_id_by_user_id(self, identity, location="int"):
-        short_location = location[0:3]
-        # logger.debug(f"returning session_id for user {identity}")
-        rv = self.get_user(identity, db_key="identity", location=short_location)
-        # logger.debug(rv)
+    def get_session_id_by_user_id(self, identity, location=""):
+        if not location:
+            rv = self.get_user(identity, db_key="identity", location="ext")
+            if not rv:
+                rv = self.get_user(identity, db_key="identity", location="int")
+        else:
+            short_location = location[0:3]
+            rv = self.get_user(identity, db_key="identity", location=short_location)
+
         return rv.session_id
 
     # def get_session_id_by_internal_user_id(self, identity):
