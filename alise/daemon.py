@@ -31,12 +31,12 @@ app.include_router(oauth2_router)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-for r in router_api.routes:
-    logger.debug(f"router_api.routes: {r}")
-logger.debug(f"router_api.routes: {type(router_api.routes)}")
-for r in router_ssr.routes:
-    logger.debug(f"router_ssr.routes: {r}")
-logger.debug(f"router_ssr.routes: {type(router_ssr.routes)}")
+# for r in router_api.routes:
+#     logger.debug(f"router_api.routes: {r}")
+# logger.debug(f"router_api.routes: {type(router_api.routes)}")
+# for r in router_ssr.routes:
+#     logger.debug(f"router_ssr.routes: {r}")
+# logger.debug(f"router_ssr.routes: {type(router_ssr.routes)}")
 
 # app.add_middleware(OAuth2Middleware, config=oauth2_config, callback=on_auth)
 # app.add_middleware(OAuth2Middleware, config=oauth2_config)
