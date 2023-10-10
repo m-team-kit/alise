@@ -1,0 +1,17 @@
+[Unit]
+Description=alise with gunicorn service
+Before=nginx.service
+
+[Service]
+User=root
+Group=root
+RuntimeDirectory=alise
+WorkingDirectory=/var/tmp/alise/
+# EnvironmentFile=/etc/alise/oidc.conf
+ExecStart=/usr/lib/motley-cue/bin/gunicorn  alise.daemon:app -w 4 -k "uvicorn.workers.UvicornWorker"
+# motley_cue.api:api -k "uvicorn.workers.UvicornWorker" --config /usr/lib/motley-cue/etc/gunicorn/gunicorn.conf.py
+ExecReload=/bin/kill -s HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
+
