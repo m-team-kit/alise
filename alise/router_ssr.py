@@ -1,6 +1,7 @@
 # vim: tw=100 foldmethod=indent
 # pylint: disable=logging-fstring-interpolation
 import json
+import os
 
 from fastapi import APIRouter
 from fastapi import Request
@@ -22,7 +23,8 @@ from alise.logsetup import logger
 # logger = logging.getLogger(__name__)
 
 router_ssr = APIRouter()
-templates = Jinja2Templates(directory="templates")
+templates_path = os.path.join(os.path.dirname(__file__), "templates")
+templates = Jinja2Templates(directory=templates_path)
 
 # There are a few different conceptions I'm using in this code:
 # request.user.is_authenticated is merely an information on whether the request.user object contains

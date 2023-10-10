@@ -3,6 +3,7 @@
 # pylint: disable = logging-fstring-interpolation
 
 import sys
+import os
 import uvicorn
 
 from fastapi import FastAPI
@@ -30,7 +31,8 @@ app.include_router(router_ssr)
 app.include_router(router_api)
 app.include_router(oauth2_router)
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+static_path = os.path.join(os.path.dirname(__file__), "static")
+app.mount("/static", StaticFiles(directory="static"), name=static_path)
 
 # for r in router_api.routes:
 #     logger.debug(f"router_api.routes: {r}")
