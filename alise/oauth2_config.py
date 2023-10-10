@@ -15,6 +15,7 @@ from fastapi_oauth2.claims import Claims
 from fastapi_oauth2.config import OAuth2Config
 from fastapi_oauth2.client import OAuth2Client
 
+from alise.config import CONFIG
 from alise.logsetup import logger
 from alise import exceptions
 
@@ -28,7 +29,7 @@ CONFIG_KEY_MAP = {
     # apparently not used: = rsp.json()["introspection_endpoint"]
 }
 
-if not load_dotenv():
+if not load_dotenv(dotenv_path=CONFIG.oidc.oidc_config):
     raise exceptions.InternalException("Could not load dotenv")
 
 
