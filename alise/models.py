@@ -1,4 +1,5 @@
 # vim: tw=100 foldmethod=indent
+# pylint: disable = logging-fstring-interpolation
 import sqlite3
 import json
 from addict import Dict
@@ -130,7 +131,7 @@ class DatabaseUser(Base):
         # logger.debug(f"returning session_id for user {identity}")
 
         res = self._db_query(
-            f"SELECT * from {location}_user WHERE session_id=? and provider=?",
+            f"SELECT * from {short_location}_user WHERE session_id=? and provider=?",
             (session_id, provider),
         )
 

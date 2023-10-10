@@ -1,9 +1,9 @@
 """Daemon for alise."""
 # vim: tw=100 foldmethod=indent
-# pylint: disable = logging-fstring-interpolation, unused-import
+# pylint: disable = logging-fstring-interpolation
 
-import uvicorn
 import sys
+import uvicorn
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -11,8 +11,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi_oauth2.router import router as oauth2_router
 
 from alise.logsetup import logger
-from alise.config import CONFIG
-from alise.parse_args import args
+# from alise.config import CONFIG
+# from alise.parse_args import args
 
 from alise.pathdiversion import SSROAuth2Middleware
 

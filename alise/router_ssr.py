@@ -3,9 +3,8 @@
 import json
 
 from fastapi import APIRouter
-from fastapi import Depends
-from fastapi import Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse
+from fastapi import Request
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 
 from addict import Dict
@@ -15,7 +14,6 @@ from alise.oauth2_config import get_external_providers
 from alise.exceptions import InternalException
 
 from alise.models import DatabaseUser
-from alise.utils import base64_decode
 
 # from alise.models import LastPage
 
@@ -184,7 +182,7 @@ async def unlink(request: Request, site: str, provider: str):
 
 
 @router_ssr.get("/{site}/link/{provider}", response_class=HTMLResponse)
-async def unlink(request: Request, site: str, provider: str):
+async def link(request: Request, site: str, provider: str):
     session_logger(request)
 
     should_redirect_to = "/".join(request.url.__str__().split("/")[0:4])

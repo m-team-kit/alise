@@ -1,11 +1,10 @@
 # vim: tw=100 foldmethod=indent
+# pylint: disable = logging-fstring-interpolation
 
 import requests
 
 import os
 from dotenv import load_dotenv
-
-from urllib.parse import quote_plus
 
 # from social_core.backends.github import GithubOAuth2
 from social_core.backends.google import GoogleOAuth2
@@ -34,12 +33,12 @@ load_dotenv()
 
 # make sure OIDC_ENDPOINT is defined
 class MyGoogleOAuth2(GoogleOAuth2):
-    OIDC_ENDPOINT = os.getenv("GOOGLE_ISS")
+    OIDC_ENDPOINT = os.getenv("GOOGLE_ISS", "")
 
 
 class HelmholtzOpenIdConnect(OpenIdConnectAuth):
     name = "helmholtz"
-    OIDC_ENDPOINT = os.getenv("HELMHOLTZ_ISS")
+    OIDC_ENDPOINT = os.getenv("HELMHOLTZ_ISS", "")
     ID_TOKEN_ISSUER = OIDC_ENDPOINT
     provider_type = "external"
 
@@ -61,7 +60,7 @@ class HelmholtzOpenIdConnect(OpenIdConnectAuth):
 
 class EGIOpenIdConnect(OpenIdConnectAuth):
     name = "egi"
-    OIDC_ENDPOINT = os.getenv("EGI_ISS")
+    OIDC_ENDPOINT = os.getenv("EGI_ISS", "")
     ID_TOKEN_ISSUER = OIDC_ENDPOINT
     provider_type = "external"
 
@@ -83,7 +82,7 @@ class EGIOpenIdConnect(OpenIdConnectAuth):
 
 class VegaKeycloakOpenIdConnect(OpenIdConnectAuth):
     name = "vega-kc"
-    OIDC_ENDPOINT = os.getenv("VEGA_ISS")
+    OIDC_ENDPOINT = os.getenv("VEGA_ISS", "")
     ID_TOKEN_ISSUER = OIDC_ENDPOINT
     provider_type = "internal"
 
@@ -105,7 +104,7 @@ class VegaKeycloakOpenIdConnect(OpenIdConnectAuth):
 
 class FelsInternalOpenIdConnect(OpenIdConnectAuth):
     name = "kit-fels"
-    OIDC_ENDPOINT = os.getenv("FELS_ISS")
+    OIDC_ENDPOINT = os.getenv("FELS_ISS", "")
     ID_TOKEN_ISSUER = OIDC_ENDPOINT
     provider_type = "internal"
 
@@ -136,8 +135,8 @@ oauth2_config = OAuth2Config(
     clients=[
         OAuth2Client(
             backend=HelmholtzOpenIdConnect,
-            client_id=os.getenv("HELMHOLTZ_CLIENT_ID"),
-            client_secret=os.getenv("HELMHOLTZ_CLIENT_SECRET"),
+            client_id=os.getenv("HELMHOLTZ_CLIENT_ID", ""),
+            client_secret=os.getenv("HELMHOLTZ_CLIENT_SECRET", ""),
             scope=[
                 "openid",
                 "profile",
@@ -153,8 +152,8 @@ oauth2_config = OAuth2Config(
         ),
         OAuth2Client(
             backend=EGIOpenIdConnect,
-            client_id=os.getenv("EGI_CLIENT_ID"),
-            client_secret=os.getenv("EGI_CLIENT_SECRET"),
+            client_id=os.getenv("EGI_CLIENT_ID", ""),
+            client_secret=os.getenv("EGI_CLIENT_SECRET", ""),
             scope=["openid", "profile", "email", "eduperson_assurance"],
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
@@ -163,18 +162,18 @@ oauth2_config = OAuth2Config(
         ),
         OAuth2Client(
             backend=MyGoogleOAuth2,
-            client_id=os.getenv("GOOGLE_CLIENT_ID"),
-            client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+            client_id=os.getenv("GOOGLE_CLIENT_ID", ""),
+            client_secret=os.getenv("GOOGLE_CLIENT_SECRET", ""),
             scope=["openid", "profile", "email"],
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
-                # identity=lambda user: f"{os.getenv('GOOGLE_ISS')}@{user.sub}",
+                # identity=lambda user: f"{os.getenv('GOOGLE_ISS', "")}@{user.sub}",
             ),
         ),
         OAuth2Client(
             backend=VegaKeycloakOpenIdConnect,
-            client_id=os.getenv("VEGA_CLIENT_ID"),
-            client_secret=os.getenv("VEGA_CLIENT_SECRET"),
+            client_id=os.getenv("VEGA_CLIENT_ID", ""),
+            client_secret=os.getenv("VEGA_CLIENT_SECRET", ""),
             scope=[
                 "openid",
                 "profile",
@@ -195,8 +194,8 @@ oauth2_config = OAuth2Config(
         ),
         OAuth2Client(
             backend=FelsInternalOpenIdConnect,
-            client_id=os.getenv("FELS_CLIENT_ID"),
-            client_secret=os.getenv("FELS_CLIENT_SECRET"),
+            client_id=os.getenv("FELS_CLIENT_ID", ""),
+            client_secret=os.getenv("FELS_CLIENT_SECRET", ""),
             scope=["openid", "profile", "email"],
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
@@ -211,16 +210,19 @@ oauth2_config = OAuth2Config(
 def get_provider_iss_by_name(name: str) -> str:
     for x in oauth2_config.clients:
         if x.backend.name == name:
-            return x.backend.OIDC_ENDPOINT
-    # FIXME: am I sure not to return ""
+            try:
+                return x.backend.OIDC_ENDPOINT # pyright: ignore
+            except AttributeError:
+                return name
+    # FIXME: am I sure it's not better to return "" instead of name?
     return name
 
 
 def get_provider_name_by_iss(iss: str) -> str:
     for x in oauth2_config.clients:
-        if x.backend.OIDC_ENDPOINT == iss:
+        if x.backend.OIDC_ENDPOINT == iss: # pyright: ignore
             return x.backend.name
-    # FIXME: am I sure not to return ""
+    # FIXME: am I sure it's not better to return "" instead of name?
     return iss
 
 
@@ -239,7 +241,7 @@ def get_providers(provider_type):
     names = []
     for x in oauth2_config.clients:
         try:
-            if x.backend.provider_type == provider_type:
+            if x.backend.provider_type == provider_type: # pyright: ignore
                 names.append(x.backend.name)
         except AttributeError:
             if provider_type == "external":  # external providers may not

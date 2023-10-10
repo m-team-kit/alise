@@ -13,7 +13,6 @@ from flaat.fastapi import Flaat
 from alise.logsetup import logger
 from alise import exceptions
 from alise.oauth2_config import get_provider_name_by_iss
-from alise.oauth2_config import get_provider_iss_by_name
 from alise.oauth2_config import get_sub_iss_by_identity
 from alise.oauth2_config import get_provider_name_sub_by_identity
 
@@ -137,7 +136,8 @@ def get_mappings_by_id_raw(request: Request, site: str, identity: str):
 @flaat.is_authenticated()
 def all_my_mappings_raw(request: Request):
     user_infos = flaat.get_user_infos_from_request(request)
-
+    if user_infos is None:
+        raise exceptions.InternalException("Could not find user infos")
     logger.info(user_infos.toJSON())
     logger.info(type(user_infos))
     response = JSONResponse({"key": "value"})
