@@ -23,7 +23,10 @@ class SSROAuth2Middleware(BaseHTTPMiddleware):
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         # logger.debug(f"route.path: {URL(scope=scope).path}")
-        if any(route.path == URL(scope=scope).path for route in router_api.routes): # pyright: ignore
+        if any(
+            route.path == URL(scope=scope).path  # pyright: ignore
+            for route in router_api.routes
+        ):
             await super().__call__(scope, receive, send)
         else:
             return await self.oauth2_middleware.__call__(scope, receive, send)

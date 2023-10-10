@@ -76,8 +76,8 @@ async def site(request: Request, site: str):
         # and also set the cookie so user gets sent to right page, when coming back
 
         # Redirect URI
-        logger.info(f"storing redirect_uri: {request.url.__str__()}")
-        response.set_cookie(key="redirect_uri", value=request.url.__str__(), max_age=60)
+        logger.info(f"storing redirect_uri: {str(request.url)}")
+        response.set_cookie(key="redirect_uri", value=str(request.url), max_age=60)
         return response
 
     ####### authenticated user from here on ########################################################
@@ -165,7 +165,8 @@ async def site(request: Request, site: str):
 async def unlink(request: Request, site: str, provider: str):
     session_logger(request)
 
-    should_redirect_to = "/".join(request.url.__str__().split("/")[0:4])
+    # should_redirect_to = "/".join(request.url.__str__().split("/")[0:4])
+    should_redirect_to = "/".join(str(request.url).split("/")[0:4])
 
     response = RedirectResponse("/oauth2/logout")
     response.set_cookie(key="redirect_uri", value=should_redirect_to)
@@ -185,7 +186,8 @@ async def unlink(request: Request, site: str, provider: str):
 async def link(request: Request, site: str, provider: str):
     session_logger(request)
 
-    should_redirect_to = "/".join(request.url.__str__().split("/")[0:4])
+    # should_redirect_to = "/".join(request.url.__str__().split("/")[0:4])
+    should_redirect_to = "/".join(str(request.url).split("/")[0:4])
     response = RedirectResponse(f"/oauth2/{provider}/authorize")
     response.set_cookie(key="redirect_uri", value=should_redirect_to)
     return response

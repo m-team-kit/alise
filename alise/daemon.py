@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi_oauth2.router import router as oauth2_router
 
 from alise.logsetup import logger
+
 # from alise.config import CONFIG
 # from alise.parse_args import args
 

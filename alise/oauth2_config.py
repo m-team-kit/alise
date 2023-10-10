@@ -1,9 +1,8 @@
 # vim: tw=100 foldmethod=indent
 # pylint: disable = logging-fstring-interpolation
 
-import requests
-
 import os
+import requests
 from dotenv import load_dotenv
 
 # from social_core.backends.github import GithubOAuth2
@@ -43,7 +42,9 @@ class HelmholtzOpenIdConnect(OpenIdConnectAuth):
     provider_type = "external"
 
     # auto fill from .well-known/openid-configuration
-    autoconf = requests.get(OIDC_ENDPOINT + "/.well-known/openid-configuration").json()
+    autoconf = requests.get(
+        OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15
+    ).json()
     try:
         ACCESS_TOKEN_URL = autoconf["token_endpoint"]
         AUTHORIZATION_URL = autoconf["authorization_endpoint"]
@@ -65,7 +66,9 @@ class EGIOpenIdConnect(OpenIdConnectAuth):
     provider_type = "external"
 
     # auto fill from .well-known/openid-configuration
-    autoconf = requests.get(OIDC_ENDPOINT + "/.well-known/openid-configuration").json()
+    autoconf = requests.get(
+        OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15
+    ).json()
     try:
         ACCESS_TOKEN_URL = autoconf["token_endpoint"]
         AUTHORIZATION_URL = autoconf["authorization_endpoint"]
@@ -87,7 +90,9 @@ class VegaKeycloakOpenIdConnect(OpenIdConnectAuth):
     provider_type = "internal"
 
     # auto fill from .well-known/openid-configuration
-    autoconf = requests.get(OIDC_ENDPOINT + "/.well-known/openid-configuration").json()
+    autoconf = requests.get(
+        OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15
+    ).json()
     try:
         ACCESS_TOKEN_URL = autoconf["token_endpoint"]
         AUTHORIZATION_URL = autoconf["authorization_endpoint"]
@@ -109,7 +114,9 @@ class FelsInternalOpenIdConnect(OpenIdConnectAuth):
     provider_type = "internal"
 
     # auto fill from .well-known/openid-configuration
-    autoconf = requests.get(OIDC_ENDPOINT + "/.well-known/openid-configuration").json()
+    autoconf = requests.get(
+        OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15
+    ).json()
     try:
         ACCESS_TOKEN_URL = autoconf["token_endpoint"]
         AUTHORIZATION_URL = autoconf["authorization_endpoint"]
@@ -211,7 +218,7 @@ def get_provider_iss_by_name(name: str) -> str:
     for x in oauth2_config.clients:
         if x.backend.name == name:
             try:
-                return x.backend.OIDC_ENDPOINT # pyright: ignore
+                return x.backend.OIDC_ENDPOINT  # pyright: ignore
             except AttributeError:
                 return name
     # FIXME: am I sure it's not better to return "" instead of name?
@@ -220,7 +227,7 @@ def get_provider_iss_by_name(name: str) -> str:
 
 def get_provider_name_by_iss(iss: str) -> str:
     for x in oauth2_config.clients:
-        if x.backend.OIDC_ENDPOINT == iss: # pyright: ignore
+        if x.backend.OIDC_ENDPOINT == iss:  # pyright: ignore
             return x.backend.name
     # FIXME: am I sure it's not better to return "" instead of name?
     return iss
@@ -241,7 +248,7 @@ def get_providers(provider_type):
     names = []
     for x in oauth2_config.clients:
         try:
-            if x.backend.provider_type == provider_type: # pyright: ignore
+            if x.backend.provider_type == provider_type:  # pyright: ignore
                 names.append(x.backend.name)
         except AttributeError:
             if provider_type == "external":  # external providers may not

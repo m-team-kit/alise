@@ -2,7 +2,6 @@
 
 import logging
 import os
-import sys
 from dataclasses import dataclass, fields, field
 from typing import Optional, List
 from pathlib import Path

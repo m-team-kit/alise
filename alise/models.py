@@ -4,6 +4,7 @@ import sqlite3
 import json
 from addict import Dict
 
+from alise import exceptions
 from alise.database import Base
 from alise.logsetup import logger
 
@@ -20,7 +21,8 @@ class LastPage(Base):
 
             cur.execute(
                 "INSERT OR REPLACE into lastpage values(?, ?) ",
-                (session, url.__str__()),
+                # (session, url.__str__()),
+                (session, str(url)),
             )
             con.commit()
             cur.close()
@@ -83,7 +85,8 @@ class DatabaseUser(Base):
 
     def store_user(self, jsondata, location, session_id):
         try:
-            identity = jsondata.identity.__str__()
+            # identity = jsondata.identity.__str__()
+            identity = str(jsondata.identity)
             jsonstr = json.dumps(jsondata, sort_keys=True, indent=4)
         except AttributeError as e:
             logger.error(f"cannot find attribute:   {e}")
@@ -103,7 +106,8 @@ class DatabaseUser(Base):
 
     def update_user(self, jsondata, location):
         try:
-            identity = jsondata.identity.__str__()
+            # identity = jsondata.identity.__str__()
+            identity = str(jsondata.identity)
             jsonstr = json.dumps(jsondata, sort_keys=True, indent=4)
         except AttributeError as e:
             logger.error(f"cannot find attribute:   {e}")
@@ -136,11 +140,13 @@ class DatabaseUser(Base):
         )
 
         if len(res) > 1:
-            logger.error("found more than one result for query")
-            raise Exception
+            message = "found more than one result for query"
+            logger.error(message)
+            raise exceptions.InternalException(message)
         if len(res) == 0:
-            logger.error("found no result for query")
-            raise Exception
+            message = "found no result for query"
+            logger.error(message)
+            raise exceptions.InternalException(message)
         # logger.debug(rv)
         return res[-1].identity
 
@@ -180,8 +186,9 @@ class DatabaseUser(Base):
         # logger.debug(f"db_key: {db_key}")
         keys = ["session_id", "identity", "jsonstr"]
         if db_key not in keys:
-            logger.error("Key not found in internal database")
-            raise Exception
+            message = "Key not found in internal database"
+            logger.error(message)
+            raise exceptions.InternalException(message)
         # logger.debug(f"DB QUERY: SELECT * from {location}_user WHERE {db_key}={value}")
         res = self._db_query(f"SELECT * from {location}_user WHERE {db_key}=?", [value])
         if len(res) == 0:

@@ -1,10 +1,7 @@
 # vim: tw=100 foldmethod=indent
 import sqlite3
-import json
 
 from addict import Dict
-
-from typing import Optional
 
 from alise.config import CONFIG
 from alise.logsetup import logger
