@@ -39,7 +39,7 @@ def fill_json_response(user):
     int_sub, int_iss = get_sub_iss_by_identity(user.int_id.identity)
     response_json.internal.sub = int_sub 
     response_json.internal.iss = int_iss 
-    response_json.internal.username = user.int_id.generated_username
+    response_json.internal.username = user.int_id.jsondata.generated_username
     response_json.internal.display_name = user.int_id.jsondata.display_name
 
     response_json.external = []
