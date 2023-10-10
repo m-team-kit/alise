@@ -1,18 +1,20 @@
+PYTHON=python3
+
 .PHONY: default
 default: sdist bdist_wheel
 
 .PHONY: sdist
 sdist:
-	# python3 ./setup.py sdist
-	python -m build
+	# $(PYTHON)3 ./setup.py sdist
+	$(PYTHON) -m build
 
 .PHONY: bdist_wheel
 bdist_wheel:
-	# python3 ./setup.py bdist_wheel
-	python -m build
+	# $(PYTHON)3 ./setup.py bdist_wheel
+	$(PYTHON) -m build
 
 .PHONY: dist
-dist: sdist bdist_wheel
+dist: sdist
 
 clean: cleandist
 	rm -rf build 
