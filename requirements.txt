@@ -4,3 +4,4 @@ fastapi-oauth2
 addict
 uvicorn
 python-dotenv
+jinja2-time
