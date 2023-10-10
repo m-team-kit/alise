@@ -3,3 +3,4 @@ flaat
 fastapi-oauth2
 addict
 uvicorn
+dotenv
