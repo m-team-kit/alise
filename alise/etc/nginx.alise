@@ -8,9 +8,9 @@
 # }
 
 server {
-    listen 80;
-    listen [::]:80;
-
+    # listen 80;
+    # listen [::]:80;
+    #
     # # if you uncomment this block, make sure you remove the two directives above
     # # also consider uncommenting the server block above for port 80 redirects to 443
     # # alternatively, you could use port 8443 instead of 443, as this port is also
@@ -21,13 +21,25 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/alise.data.kit.edu/privkey.pem;
 
     server_name _;
+    # location / {
+    #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    #     proxy_set_header X-Forwarded-Proto $scheme;
+    #     proxy_set_header Host $http_host;
+    #     # we don't want nginx trying to do something clever with
+    #     # redirects, we set the Host: header above already.
+    #     proxy_redirect off;
+    #     proxy_pass http://unix:/run/alise/alise.sock;
+    # }
     location / {
+        proxy_set_header Host $http_host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Host $http_host;
-        # we don't want nginx trying to do something clever with
-        # redirects, we set the Host: header above already.
+        proxy_set_header Upgrade $http_upgrade;
+        # proxy_set_header Connection $connection_upgrade;
         proxy_redirect off;
-        proxy_pass http://unix:/run/alise/alise.sock;
+        proxy_buffering off;
+        # proxy_pass http://uvicorn;
+        # proxy_pass http://unix:/run/alise/alise.sock;
+        proxy_pass http://localhost:8000;
     }
 }
