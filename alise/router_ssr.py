@@ -70,17 +70,17 @@ async def site(request: Request, site: str):
     # logging
     session_logger(request)
     # redirect user straight to login at provider, if not authenticated
-    if not session_id:
-        if not request.user.is_authenticated:
-            redirect_auth = f"/oauth2/{site}/authorize"
-            logger.debug(f"Redirecting to authorize: {redirect_auth}")
-            response = RedirectResponse(redirect_auth)
-            # and also set the cookie so user gets sent to right page, when coming back
+    # if not session_id:
+    if not request.user.is_authenticated:
+        redirect_auth = f"/oauth2/{site}/authorize"
+        logger.debug(f"Redirecting to authorize: {redirect_auth}")
+        response = RedirectResponse(redirect_auth)
+        # and also set the cookie so user gets sent to right page, when coming back
 
-            # Redirect URI
-            logger.info(f"storing redirect_uri: {request.url.__str__()}")
-            response.set_cookie(key="redirect_uri", value=request.url.__str__(), max_age=60)
-            return response
+        # Redirect URI
+        logger.info(f"storing redirect_uri: {request.url.__str__()}")
+        response.set_cookie(key="redirect_uri", value=request.url.__str__(), max_age=60)
+        return response
 
     ####### authenticated user from here on ########################################################
     user = DatabaseUser(site)
@@ -95,7 +95,7 @@ async def site(request: Request, site: str):
         iss = request.auth.provider.backend.OIDC_ENDPOINT
         logger.info(f"found iss in backend config: {iss}")
     except AttributeError:
-        raise InternalException(message="iss claim not found")
+        raise InternalException(message=f"iss claim not found for {request.auth.provider.backend.name}")
     logger.info(f"iss: {iss}")
 
 
