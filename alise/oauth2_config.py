@@ -16,6 +16,7 @@ from fastapi_oauth2.config import OAuth2Config
 from fastapi_oauth2.client import OAuth2Client
 
 from alise.logsetup import logger
+from alise import exceptions
 
 
 CONFIG_KEY_MAP = {
@@ -27,7 +28,8 @@ CONFIG_KEY_MAP = {
     # apparently not used: = rsp.json()["introspection_endpoint"]
 }
 
-load_dotenv()
+if not load_dotenv():
+    raise exceptions.InternalException("Could not load dotenv")
 
 
 # make sure OIDC_ENDPOINT is defined
