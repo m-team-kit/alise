@@ -116,12 +116,14 @@ def reload_parser():
     files += [
         Path(f"./.config/{basename}.conf"),
         Path(f"/etc/{basename}.conf"),
+        Path(f"/etc/{basename}/{basename}.conf"),
         Path(f"{dirname}/{basename}.conf"),
     ]
 
     config_loaded = False
     cp = MyConfigParser(interpolation=ExtendedInterpolation())
     for f in files:
+        # print(F"tryng to load config: {f}")
         try:
             if f.exists():
                 logger.info("Using this config file: %s", f)
