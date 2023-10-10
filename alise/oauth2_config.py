@@ -224,17 +224,15 @@ def get_provider_iss_by_name(name: str) -> str:
             try:
                 return x.backend.OIDC_ENDPOINT  # pyright: ignore
             except AttributeError:
-                return name
-    # FIXME: am I sure it's not better to return "" instead of name?
-    return name
+                return ""
+    return ""
 
 
 def get_provider_name_by_iss(iss: str) -> str:
     for x in oauth2_config.clients:
         if x.backend.OIDC_ENDPOINT == iss:  # pyright: ignore
             return x.backend.name
-    # FIXME: am I sure it's not better to return "" instead of name?
-    return iss
+    return ""
 
 
 def get_sub_iss_by_identity(identity):
@@ -244,7 +242,7 @@ def get_sub_iss_by_identity(identity):
 
 
 def get_provider_name_sub_by_identity(identity):
-    logger.debung(F"identity: {identity}")
+    logger.debug(F"identity: {identity}")
     provider_name, sub = identity.split(":")
     return (provider_name, sub)
 

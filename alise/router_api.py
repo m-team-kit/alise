@@ -59,6 +59,7 @@ def get_mappings(request: Request, site: str, subiss: str):
     sub = unquote_plus(encoded_sub)
     iss = unquote_plus(encoded_iss)
     provider_name = get_provider_name_by_iss(iss)
+    logger.debug(F"provider_name: {provider_name}")
     identity = f"{provider_name}:{sub}"
     user = DatabaseUser(site)
     session_id = user.get_session_id_by_user_id(identity)
