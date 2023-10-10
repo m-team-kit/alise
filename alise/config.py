@@ -254,7 +254,7 @@ class ConfigMessages(ConfigSection):
 class ConfigOIDC(ConfigSection):
     """Config section for OIDC. Selects which information will be logged"""
 
-    oidc_config: Optional[str] = None
+    oidc_config: Optional[str] = ".env"
 
     @classmethod
     def __section__name__(cls):
