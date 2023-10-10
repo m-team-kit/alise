@@ -29,6 +29,7 @@ CONFIG_KEY_MAP = {
     # apparently not used: = rsp.json()["introspection_endpoint"]
 }
 
+logger.info(f"Loading dotenv from {CONFIG.oidc.oidc_config}")
 if not load_dotenv(dotenv_path=CONFIG.oidc.oidc_config):
     raise exceptions.InternalException("Could not load dotenv")
 
