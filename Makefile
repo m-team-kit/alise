@@ -3,11 +3,13 @@ default: sdist bdist_wheel
 
 .PHONY: sdist
 sdist:
-	python3 ./setup.py sdist
+	# python3 ./setup.py sdist
+	python -m build
 
 .PHONY: bdist_wheel
 bdist_wheel:
-	python3 ./setup.py bdist_wheel
+	# python3 ./setup.py bdist_wheel
+	python -m build
 
 .PHONY: dist
 dist: sdist bdist_wheel
