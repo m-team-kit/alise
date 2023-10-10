@@ -250,6 +250,16 @@ class ConfigMessages(ConfigSection):
     def __section__name__(cls):
         return "messages"
 
+@dataclass
+class ConfigOIDC(ConfigSection):
+    """Config section for OIDC. Selects which information will be logged"""
+
+    oidc_config: Optional[str] = None
+
+    @classmethod
+    def __section__name__(cls):
+        return "oidc"
+
 
 @dataclass
 class ConfigDatabase(ConfigSection):
@@ -267,6 +277,7 @@ class Configuration:
     """All configuration settings for the alise"""
 
     messages: ConfigMessages = field(default_factory=ConfigMessages)
+    oidc: ConfigOIDC = field(default_factory=ConfigOIDC)
     database: ConfigDatabase = field(default_factory=ConfigDatabase)
     test: ConfigTest = field(default_factory=ConfigTest)
 
