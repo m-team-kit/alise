@@ -32,7 +32,7 @@ app.include_router(router_api)
 app.include_router(oauth2_router)
 
 static_path = os.path.join(os.path.dirname(__file__), "static")
-app.mount("/static", StaticFiles(directory="static"), name=static_path)
+app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 # for r in router_api.routes:
 #     logger.debug(f"router_api.routes: {r}")
