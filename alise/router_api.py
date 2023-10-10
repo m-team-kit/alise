@@ -34,11 +34,12 @@ flaat.set_trusted_OP_list(
 # session_id   - https%3A%2F%2Fsso.sling.si%3A8443%2Fauth%2Frealms%2FSLING@3c498039-1754-4f9d-b71c-5c13739e8875
 # Identity:      https%3A%2F%2Fsso.sling.si%3A8443%2Fauth%2Frealms%2FSLING@3c498039-1754-4f9d-b71c-5c13739e8875
 
+
 def fill_json_response(user):
     response_json = Dict()
     int_sub, int_iss = get_sub_iss_by_identity(user.int_id.identity)
-    response_json.internal.sub = int_sub 
-    response_json.internal.iss = int_iss 
+    response_json.internal.sub = int_sub
+    response_json.internal.iss = int_iss
     response_json.internal.username = user.int_id.jsondata.generated_username
     response_json.internal.display_name = user.int_id.jsondata.display_name
 
@@ -55,7 +56,6 @@ def fill_json_response(user):
 
 @router_api.get("/{site}/get_mappings/{subiss}")
 def get_mappings(request: Request, site: str, subiss: str):
-
     encoded_sub, encoded_iss = subiss.split("@")
     sub = unquote_plus(encoded_sub)
     iss = unquote_plus(encoded_iss)

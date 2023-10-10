@@ -45,7 +45,7 @@ def session_logger(request):
     #     logger.info(F"request: {attr:30} - {getattr(request, attr, '')}")
     logger.info("[Cookies]")
     for i in ["Authorization", "session_id", "redirect_uri"]:
-    # for i in ["session_id", "redirect_uri"]:
+        # for i in ["session_id", "redirect_uri"]:
         logger.info(f"    {i:13}- {request.cookies.get(i, '')}")
     logger.info(f"[Authenticated]: {request.user.is_authenticated}")
     if request.user.is_authenticated:
@@ -95,9 +95,10 @@ async def site(request: Request, site: str):
         iss = request.auth.provider.backend.OIDC_ENDPOINT
         logger.info(f"found iss in backend config: {iss}")
     except AttributeError:
-        raise InternalException(message=f"iss claim not found for {request.auth.provider.backend.name}")
+        raise InternalException(
+            message=f"iss claim not found for {request.auth.provider.backend.name}"
+        )
     logger.info(f"iss: {iss}")
-
 
     # FIXME: Make sure we can get that session id from any user id
     provider_type = get_provider_type(request)

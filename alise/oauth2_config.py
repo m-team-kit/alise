@@ -31,6 +31,7 @@ CONFIG_KEY_MAP = {
 
 load_dotenv()
 
+
 # make sure OIDC_ENDPOINT is defined
 class MyGoogleOAuth2(GoogleOAuth2):
     OIDC_ENDPOINT = os.getenv("GOOGLE_ISS")
