@@ -90,7 +90,7 @@ def reload_parser():
     files = []
 
     # basename = os.path.basename(sys.argv[0]).rstrip(".py")
-    basename = "daemon"
+    basename = "alise"
     dirname = os.path.dirname(__file__)
 
     # If the program has arguments with a config: prefer it:
