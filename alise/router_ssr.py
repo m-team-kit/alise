@@ -25,6 +25,7 @@ from alise.logsetup import logger
 router_ssr = APIRouter()
 templates_path = os.path.join(os.path.dirname(__file__), "templates")
 templates = Jinja2Templates(directory=templates_path)
+static_path = os.path.join(os.path.dirname(__file__), "static")
 
 # There are a few different conceptions I'm using in this code:
 # request.user.is_authenticated is merely an information on whether the request.user object contains
@@ -54,6 +55,14 @@ def session_logger(request):
         logger.info(
             f"    provider: {request.auth.provider.provider}," f"  {provider_type}"
         )
+
+
+@router_ssr.get("/privacy.html", response_class=HTMLResponse)
+async def privacy():
+    with open(rf"{static_path}/privacy.html","r") as f:
+        content = f.read()
+    f.close()
+    return HTMLResponse(content=content, status_code=202)
 
 
 @router_ssr.get("/{site}", response_class=HTMLResponse)
