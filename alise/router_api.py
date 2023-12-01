@@ -52,39 +52,49 @@ def fill_json_response(user):
 
     return JSONResponse(response_json)
 
-
-@router_api.get("/{site}/get_mappings/{subiss}")
-def get_mappings(request: Request, site: str, subiss: str):
-    encoded_sub, encoded_iss = subiss.split("@")
+def decode_input(encoded_sub, encoded_iss):
     sub = unquote_plus(encoded_sub)
     iss = unquote_plus(encoded_iss)
     provider_name = get_provider_name_by_iss(iss)
     logger.debug(F"provider_name: {provider_name}")
     identity = f"{provider_name}:{sub}"
-    user = DatabaseUser(site)
-    session_id = user.get_session_id_by_user_id(identity)
-
-    provider_name, sub = get_provider_name_sub_by_identity(identity)
-    sub, iss = get_sub_iss_by_identity(identity)
-
-    logger.info(f"Site:     {site}")
-    logger.info(f"subiss:   {subiss}")
     logger.info(f"     sub: {sub}")
-    logger.info(f"     iss: {iss}")
     logger.info(f"     iss: {iss}")
     logger.info(f"     provider_name: {provider_name}")
     logger.info(f"          identity: {identity}")
+
+    return (sub, iss, provider_name, identity)
+
+@router_api.get("/{site}/get_mappings/{subiss}")
+def get_mappings_subiss(request: Request, site: str, subiss: str):
+    encoded_sub, encoded_iss = subiss.split("@")
+    logger.info(f"Site:     {site}")
+    logger.info(f"subiss:   {subiss}")
+    (sub, iss, provider_name, identity) = decode_input(encoded_sub, encoded_iss)
+
+    user = DatabaseUser(site)
+    session_id = user.get_session_id_by_user_id(identity)
     logger.info(f"session_id:{session_id}")
 
     if not session_id:
         return JSONResponse({"message": "no such user"}, status_code=404)
     user.load_all_identities(session_id)
-    # logger.debug(user.ext_ids)
-    response_json = Dict()
-    response_json.internal = user.int_id.identity
-    response_json.external = []
-    for e in user.ext_ids:
-        response_json.external.append(e.identity)
+
+    return fill_json_response(user)
+
+@router_api.get("/target/{site}/mapping/issuer/{encoded_iss}/user/{encoded_sub}")
+def get_mappings_path(request: Request, site: str, encoded_iss: str, encoded_sub: str):
+    logger.info(f"Site:     {site}")
+    (sub, iss, provider_name, identity) = decode_input(encoded_sub, encoded_iss)
+
+    user = DatabaseUser(site)
+    session_id = user.get_session_id_by_user_id(identity, "external")
+    logger.info(f"session_id:{session_id}")
+
+    if not session_id:
+        return JSONResponse({"message": "no such user"}, status_code=404)
+
+    user.load_all_identities(session_id)
 
     return fill_json_response(user)
 
