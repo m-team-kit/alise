@@ -52,6 +52,7 @@ class DatabaseUser(Base):
         "CREATE table if not exists int_user (session_id TEXT, identity TEXT, provider TEXT, jsonstr JSON)",
         "CREATE table if not exists ext_user (session_id TEXT, identity TEXT, provider TEXT, jsonstr JSON)",
         "CREATE table if not exists sites (name TEXT, comment TEXT)",
+        "CREATE table if not exists apikeys (ownername TEXT, owneremail TEXT, sub TEXT, iss TEXT, apikey TEXT)",
     ]
 
     def __init__(self, site_name):
@@ -213,3 +214,22 @@ class DatabaseUser(Base):
 
     def get_int_id(self):
         return self.int_id.identity
+
+    ####### API KEY stuff ##########
+    def store_apikey(self, user_name: str, user_email: str, sub: str, iss: str, apikey: str):
+        self._db_query(
+            "INSERT OR REPLACE into apikeys VALUES(?, ?, ?, ?, ?)",
+            (
+                user_name,
+                user_email,
+                sub,
+                iss,
+                apikey,
+            ),
+        )
+
+    def apikey_valid(self, apikey: str) -> bool:
+        res = self._db_query("SELECT * from apikeys WHERE apikey=?", [apikey])
+        if len(res) < 1:
+            return False
+        return True
