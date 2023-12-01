@@ -15,18 +15,28 @@ To get an API Key you need to be authorized via openid connect. We use
 this solely to record who (sub, iss, email, name) requested which api-key
 
 ```
-http  http://localhost:8000/api/v1/target/vega-kc/get_apikey "Authorization: Bearer `oidc-token egi`"
+http  https://alise.data.kit.edu/api/v1/target/vega-kc/get_apikey "Authorization: Bearer `oidc-token egi`"
+
+  or 
+
+curl  https://alise.data.kit.edu/api/v1/target/vega-kc/get_apikey  -H "Authorization: Bearer `oidc-token egi`" | jq .
 ```
 
 
 ### Get a mapping from external to internal user
 
 Note that the issuer needs to be urlencoded twice.
+
 ```
 http https://alise.data.kit.edu/api/v1/target/vega-kc/mapping/issuer/`urlencode.py <issuer>`/user/`urlencode.py <subject>`?apikey=<apikey>
+
+  or 
+
+curl https://alise.data.kit.edu/api/v1/target/vega-kc/mapping/issuer/`urlencode.py <issuer>`/user/`urlencode.py <subject>`?apikey=<apikey> | jq .
 ```
 
 ## Installation
+
 Account LInking SErvice is available on [PyPI](https://pypi.org/project/alise/). Install using `pip`:
 ```
 pip install alise
