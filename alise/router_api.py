@@ -76,13 +76,16 @@ def decode_input(encoded_sub, encoded_iss):
 
 
 @router_api.get("/{site}/get_mappings/{subiss}")
-def get_mappings_subiss(request: Request, site: str, subiss: str):
+def get_mappings_subiss(request: Request, site: str, subiss: str, apikey: str):
     encoded_sub, encoded_iss = subiss.split("@")
     logger.info(f"Site:     {site}")
     logger.info(f"subiss:   {subiss}")
     (sub, iss, provider_name, identity) = decode_input(encoded_sub, encoded_iss)
 
     user = DatabaseUser(site)
+    if not user.apikey_valid(apikey):
+        return JSONResponse({"message": "invalid apikey"}, status_code=401)
+
     session_id = user.get_session_id_by_user_id(identity)
     logger.info(f"session_id:{session_id}")
 
@@ -93,9 +96,7 @@ def get_mappings_subiss(request: Request, site: str, subiss: str):
     return fill_json_response(user)
 
 
-@router_api.get(
-    "/target/{site}/mapping/issuer/{encoded_iss}/user/{encoded_sub}"
-)
+@router_api.get("/target/{site}/mapping/issuer/{encoded_iss}/user/{encoded_sub}")
 def get_mappings_path(
     request: Request, site: str, encoded_iss: str, encoded_sub: str, apikey: str
 ):
