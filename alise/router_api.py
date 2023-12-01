@@ -8,8 +8,13 @@ from addict import Dict
 from fastapi import APIRouter
 from fastapi import Request
 from fastapi.responses import JSONResponse
+import random
+import string
 
 from flaat.fastapi import Flaat
+from fastapi import Depends, FastAPI, Request, Response
+from fastapi.security import HTTPBasicCredentials, HTTPBearer
+
 from alise.logsetup import logger
 from alise import exceptions
 from alise.oauth2_config import get_provider_name_by_iss
@@ -18,8 +23,10 @@ from alise.oauth2_config import get_provider_name_sub_by_identity
 
 from alise.models import DatabaseUser
 
+VERSION = "0.1.3-beta"
 # app = FastAPI()
 flaat = Flaat()
+security = HTTPBearer()
 router_api = APIRouter(prefix="/api/v1")
 
 flaat.set_trusted_OP_list(
@@ -29,6 +36,7 @@ flaat.set_trusted_OP_list(
         "https://login.helmholtz.de/oauth2/",
     ]
 )
+flaat.set_verbosity(3)
 
 # session_id   - https%3A%2F%2Fsso.sling.si%3A8443%2Fauth%2Frealms%2FSLING@3c498039-1754-4f9d-b71c-5c13739e8875
 # Identity:      https%3A%2F%2Fsso.sling.si%3A8443%2Fauth%2Frealms%2FSLING@3c498039-1754-4f9d-b71c-5c13739e8875
@@ -52,11 +60,12 @@ def fill_json_response(user):
 
     return JSONResponse(response_json)
 
+
 def decode_input(encoded_sub, encoded_iss):
     sub = unquote_plus(encoded_sub)
     iss = unquote_plus(encoded_iss)
     provider_name = get_provider_name_by_iss(iss)
-    logger.debug(F"provider_name: {provider_name}")
+    logger.debug(f"provider_name: {provider_name}")
     identity = f"{provider_name}:{sub}"
     logger.info(f"     sub: {sub}")
     logger.info(f"     iss: {iss}")
@@ -64,6 +73,7 @@ def decode_input(encoded_sub, encoded_iss):
     logger.info(f"          identity: {identity}")
 
     return (sub, iss, provider_name, identity)
+
 
 @router_api.get("/{site}/get_mappings/{subiss}")
 def get_mappings_subiss(request: Request, site: str, subiss: str):
@@ -82,12 +92,20 @@ def get_mappings_subiss(request: Request, site: str, subiss: str):
 
     return fill_json_response(user)
 
-@router_api.get("/target/{site}/mapping/issuer/{encoded_iss}/user/{encoded_sub}")
-def get_mappings_path(request: Request, site: str, encoded_iss: str, encoded_sub: str):
+
+@router_api.get(
+    "/target/{site}/mapping/issuer/{encoded_iss}/user/{encoded_sub}"
+)
+def get_mappings_path(
+    request: Request, site: str, encoded_iss: str, encoded_sub: str, apikey: str
+):
     logger.info(f"Site:     {site}")
     (sub, iss, provider_name, identity) = decode_input(encoded_sub, encoded_iss)
 
     user = DatabaseUser(site)
+    if not user.apikey_valid(apikey):
+        return JSONResponse({"message": "invalid apikey"}, status_code=401)
+
     session_id = user.get_session_id_by_user_id(identity, "external")
     logger.info(f"session_id:{session_id}")
 
@@ -99,83 +117,118 @@ def get_mappings_path(request: Request, site: str, encoded_iss: str, encoded_sub
     return fill_json_response(user)
 
 
-@router_api.get("/{site}/get_mappings_by_id/{identity}")
-def get_mappings_by_id(request: Request, site: str, identity: str):
-    logger.info(f"Site:     {site}")
-    logger.info(f"Identity: {identity}")
+# @router_api.get("/{site}/get_mappings_by_id/{identity}")
+# def get_mappings_by_id(request: Request, site: str, identity: str):
+#     logger.info(f"Site:     {site}")
+#     logger.info(f"Identity: {identity}")
+#
+#     user = DatabaseUser(site)
+#     session_id = user.get_session_id_by_user_id(identity, "external")
+#     logger.info(f"session_id:{session_id}")
+#     if not session_id:
+#         logger.info("no external entry found for user, tring internal")
+#         session_id = user.get_session_id_by_user_id(identity, "internal")
+#         logger.info(f"internal session_id:{session_id}")
+#         if not session_id:
+#             logger.info("no entry found for user")
+#             return JSONResponse({"message": "No linkage found for this user"})
+#             # raise exceptions.BadRequest({"message": "No linkage found for this user"})
+#
+#     user.load_all_identities(session_id)
+#     # logger.debug(user.ext_ids)
+#
+#
+# @router_api.get("/{site}/get_mappings_by_id_raw/{identity}")
+# def get_mappings_by_id_raw(request: Request, site: str, identity: str):
+#     logger.info(f"Site:     {site}")
+#     logger.info(f"Identity: {identity}")
+#
+#     user = DatabaseUser(site)
+#     session_id = user.get_session_id_by_user_id(identity, "external")
+#     logger.info(f"session_id:{session_id}")
+#     if not session_id:
+#         logger.info("no external entry found for user, tring internal")
+#         session_id = user.get_session_id_by_user_id(identity, "internal")
+#         logger.info(f"internal session_id:{session_id}")
+#         if not session_id:
+#             logger.info("no entry found for user")
+#             return JSONResponse({"message": "No linkage found for this user"})
+#
+#     user.load_all_identities(session_id)
+#     # logger.debug(user.ext_ids)
+#
+#     response = JSONResponse({"internal_id": user.int_id, "external_ids": user.ext_ids})
+#     return response
 
-    user = DatabaseUser(site)
-    session_id = user.get_session_id_by_user_id(identity, "external")
-    logger.info(f"session_id:{session_id}")
-    if not session_id:
-        logger.info("no external entry found for user, tring internal")
-        session_id = user.get_session_id_by_user_id(identity, "internal")
-        logger.info(f"internal session_id:{session_id}")
-        if not session_id:
-            logger.info("no entry found for user")
-            return JSONResponse({"message": "No linkage found for this user"})
-            # raise exceptions.BadRequest({"message": "No linkage found for this user"})
 
-    user.load_all_identities(session_id)
-    # logger.debug(user.ext_ids)
+@router_api.get("/version")
+def version():
+    return VERSION
 
 
-@router_api.get("/{site}/get_mappings_by_id_raw/{identity}")
-def get_mappings_by_id_raw(request: Request, site: str, identity: str):
-    logger.info(f"Site:     {site}")
-    logger.info(f"Identity: {identity}")
-
-    user = DatabaseUser(site)
-    session_id = user.get_session_id_by_user_id(identity, "external")
-    logger.info(f"session_id:{session_id}")
-    if not session_id:
-        logger.info("no external entry found for user, tring internal")
-        session_id = user.get_session_id_by_user_id(identity, "internal")
-        logger.info(f"internal session_id:{session_id}")
-        if not session_id:
-            logger.info("no entry found for user")
-            return JSONResponse({"message": "No linkage found for this user"})
-
-    user.load_all_identities(session_id)
-    # logger.debug(user.ext_ids)
-
-    response = JSONResponse({"internal_id": user.int_id, "external_ids": user.ext_ids})
-    return response
+@router_api.get("/authenticated")
+@flaat.is_authenticated()
+def authenticated(
+    request: Request,
+    credentials: HTTPBasicCredentials = Depends(security),
+):
+    user_infos = flaat.get_user_infos_from_request(request)
+    return "This worked: there was a valid login"
 
 
 @router_api.get("/all_my_mappings_raw")
-@flaat.is_authenticated()
-def all_my_mappings_raw(request: Request):
+# @flaat.is_authenticated()
+def all_my_mappings_raw(
+    request: Request,
+):
     user_infos = flaat.get_user_infos_from_request(request)
     if user_infos is None:
         raise exceptions.InternalException("Could not find user infos")
-    logger.info(user_infos.toJSON())
+    # logger.info(user_infos.toJSON())
     logger.info(type(user_infos))
     response = JSONResponse({"key": "value"})
     return response
 
 
-# from starlette.responses import RedirectResponse
-# @router_api.get("/auth")
-# def sim_auth(request: Request):
-#     access_token = request.auth.jwt_create({
-#         "id": 1,
-#         "identity": "demo:1",
-#         "image": None,
-#         "display_name": "John Doe",
-#         "email": "john.doe@auth.sim",
-#         "username": "JohnDoe",
-#         "exp": 3689609839,
-#     })
-#     response = RedirectResponse("/")
-#     response.set_cookie(
-#         "Authorization",
-#         value=f"Bearer {access_token}",
-#         max_age=request.auth.expires,
-#         expires=request.auth.expires,
-#         httponly=request.auth.http,
-#     )
-#     return response
+def randomword(length):
+    letters = string.ascii_lowercase
+    return "".join(random.choice(letters) for i in range(length))
+
+
+@router_api.get("/target/{site}/get_apikey")
+@flaat.is_authenticated()
+def get_apikey(
+    request: Request,
+    site: str,
+):
+    user_infos = flaat.get_user_infos_from_request(request)
+    if user_infos is None:
+        raise exceptions.InternalException("Could not find user infos")
+
+    email = user_infos.get("email")
+    username = user_infos.get("name")
+    sub = user_infos.get("sub")
+    iss = user_infos.get("iss")
+    apikey = randomword(32)
+
+    user = DatabaseUser(site)
+    user.store_apikey(
+        user_name=username, user_email=email, sub=sub, iss=iss, apikey=apikey
+    )
+
+    return JSONResponse({"apikey": apikey})
+
+
+@router_api.get("/target/{site}/validate_apikey/{apikey}")
+def validate_apikey(
+    request: Request,
+    site: str,
+    apikey: str,
+):
+    user = DatabaseUser(site)
+    if user.apikey_valid(apikey=apikey):
+        return JSONResponse({"apikey": True})
+    return JSONResponse({"apikey": False})
 
 
 if __name__ == "__main__":
