@@ -20,6 +20,11 @@ server {
     ssl_certificate /etc/letsencrypt/live/alise.data.kit.edu/cert.pem;
     ssl_certificate_key /etc/letsencrypt/live/alise.data.kit.edu/privkey.pem;
 
+     # for letsencrypt:                                                     
+     location ^~ /.well-known {                                                
+        alias /var/www/html/.well-known;
+     }
+
     server_name _;
     # location / {
     #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
