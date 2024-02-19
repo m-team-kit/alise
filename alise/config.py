@@ -235,7 +235,7 @@ class ConfigTest(ConfigSection):
     lists_example: list = field(default_factory=list)
 
     @classmethod
-    def __section__name__(cls):
+    def __section__name__(cls): # pyright: ignore[reportIncompatibleMethodOverride]
         return "test"
 
 
@@ -251,7 +251,7 @@ class ConfigMessages(ConfigSection):
     log_username_creation: bool = False
 
     @classmethod
-    def __section__name__(cls):
+    def __section__name__(cls): # pyright: ignore[reportIncompatibleMethodOverride]
         return "messages"
 
 
@@ -262,7 +262,7 @@ class ConfigOIDC(ConfigSection):
     oidc_config: Optional[str] = ".env"
 
     @classmethod
-    def __section__name__(cls):
+    def __section__name__(cls): # pyright: ignore[reportIncompatibleMethodOverride]
         return "oidc"
 
 
@@ -273,7 +273,7 @@ class ConfigDatabase(ConfigSection):
     db_name: str = "alise"
 
     @classmethod
-    def __section__name__(cls):
+    def __section__name__(cls): # pyright: ignore[reportIncompatibleMethodOverride]
         return "database"
 
 
