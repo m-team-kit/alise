@@ -242,7 +242,7 @@ def get_sub_iss_by_identity(identity):
 
 
 def get_provider_name_sub_by_identity(identity):
-    logger.debug(F"identity: {identity}")
+    logger.debug(f"identity: {identity}")
     provider_name, sub = identity.split(":")
     return (provider_name, sub)
 

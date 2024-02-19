@@ -22,14 +22,15 @@ class SSROAuth2Middleware(BaseHTTPMiddleware):
             self.oauth2_middleware = OAuth2Middleware(app, config)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        """ Make sure /api is never passed to super()"""
-        URL_path = URL(scope=scope).path.split('/')[1:2]
+        """Make sure /api is never passed to super()"""
+        URL_path = URL(scope=scope).path.split("/")[1:2]
         URL_start = "/" + "/".join(URL_path)
-        if  URL_start == "/api":
+        if URL_start == "/api":
             await super().__call__(scope, receive, send)
         else:
             print("xxxxxxx: upstream")
             return await self.oauth2_middleware.__call__(scope, receive, send)
+
     # async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
     #     for route in router_api.routes:
     #         print(F"route: {route}")

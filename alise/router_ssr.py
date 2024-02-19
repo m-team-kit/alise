@@ -59,7 +59,7 @@ def session_logger(request):
 
 @router_ssr.get("/privacy.html", response_class=HTMLResponse)
 async def privacy():
-    with open(rf"{static_path}/privacy.html","r") as f:
+    with open(rf"{static_path}/privacy.html", "r") as f:
         content = f.read()
     f.close()
     return HTMLResponse(content=content, status_code=202)

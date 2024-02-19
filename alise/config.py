@@ -135,7 +135,9 @@ def reload_parser():
     if not config_loaded:
         filelist = [str(f) for f in files]
         filestring = "\n    ".join(filelist)
-        logger.warning("Warning: Could not read any config file from \n    %s", filestring)
+        logger.warning(
+            "Warning: Could not read any config file from \n    %s", filestring
+        )
         # sys.exit(4)
     return cp
 
@@ -251,6 +253,7 @@ class ConfigMessages(ConfigSection):
     @classmethod
     def __section__name__(cls):
         return "messages"
+
 
 @dataclass
 class ConfigOIDC(ConfigSection):

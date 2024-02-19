@@ -1,4 +1,5 @@
 """Daemon for alise."""
+
 # vim: tw=100 foldmethod=indent
 # pylint: disable = logging-fstring-interpolation
 

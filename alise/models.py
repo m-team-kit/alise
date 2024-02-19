@@ -216,7 +216,9 @@ class DatabaseUser(Base):
         return self.int_id.identity
 
     ####### API KEY stuff ##########
-    def store_apikey(self, user_name: str, user_email: str, sub: str, iss: str, apikey: str):
+    def store_apikey(
+        self, user_name: str, user_email: str, sub: str, iss: str, apikey: str
+    ):
         self._db_query(
             "INSERT OR REPLACE into apikeys VALUES(?, ?, ?, ?, ?)",
             (
