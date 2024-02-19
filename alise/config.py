@@ -63,7 +63,9 @@ def to_int(int_str):
     except ValueError:
         # FIXME: consider defining and using your own exceptions
         # pylint: disable = broad-exception-raised, raise-missing-from
-        raise Exception(f"Error converting to int: unrecognised integer value {int_str}.")
+        raise Exception(
+            f"Error converting to int: unrecognised integer value {int_str}."
+        )
 
 
 def to_list(list_str):
@@ -75,7 +77,9 @@ def to_list(list_str):
     except ValueError:
         # FIXME: consider defining and using your own exceptions
         # pylint: disable = broad-exception-raised, raise-missing-from
-        raise Exception(f"Error converting to list: unrecognised list value {list_str}.")
+        raise Exception(
+            f"Error converting to list: unrecognised list value {list_str}."
+        )
 
 
 def reload_parser():
@@ -131,7 +135,9 @@ def reload_parser():
     if not config_loaded:
         filelist = [str(f) for f in files]
         filestring = "\n    ".join(filelist)
-        logger.warning("Warning: Could not read any config file from \n    %s", filestring)
+        logger.warning(
+            "Warning: Could not read any config file from \n    %s", filestring
+        )
         # sys.exit(4)
     return cp
 

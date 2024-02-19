@@ -97,7 +97,9 @@ def get_mappings_subiss(request: Request, site: str, subiss: str, apikey: str):
 
 
 @router_api.get("/target/{site}/mapping/issuer/{encoded_iss}/user/{encoded_sub}")
-def get_mappings_path(request: Request, site: str, encoded_iss: str, encoded_sub: str, apikey: str):
+def get_mappings_path(
+    request: Request, site: str, encoded_iss: str, encoded_sub: str, apikey: str
+):
     logger.info(f"Site:     {site}")
     (sub, iss, provider_name, identity) = decode_input(encoded_sub, encoded_iss)
 
@@ -211,7 +213,9 @@ def get_apikey(
     apikey = randomword(32)
 
     user = DatabaseUser(site)
-    user.store_apikey(user_name=username, user_email=email, sub=sub, iss=iss, apikey=apikey)
+    user.store_apikey(
+        user_name=username, user_email=email, sub=sub, iss=iss, apikey=apikey
+    )
 
     return JSONResponse({"apikey": apikey})
 
