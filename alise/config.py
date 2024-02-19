@@ -63,9 +63,7 @@ def to_int(int_str):
     except ValueError:
         # FIXME: consider defining and using your own exceptions
         # pylint: disable = broad-exception-raised, raise-missing-from
-        raise Exception(
-            f"Error converting to int: unrecognised integer value {int_str}."
-        )
+        raise Exception(f"Error converting to int: unrecognised integer value {int_str}.")
 
 
 def to_list(list_str):
@@ -77,9 +75,7 @@ def to_list(list_str):
     except ValueError:
         # FIXME: consider defining and using your own exceptions
         # pylint: disable = broad-exception-raised, raise-missing-from
-        raise Exception(
-            f"Error converting to list: unrecognised list value {list_str}."
-        )
+        raise Exception(f"Error converting to list: unrecognised list value {list_str}.")
 
 
 def reload_parser():
@@ -135,9 +131,7 @@ def reload_parser():
     if not config_loaded:
         filelist = [str(f) for f in files]
         filestring = "\n    ".join(filelist)
-        logger.warning(
-            "Warning: Could not read any config file from \n    %s", filestring
-        )
+        logger.warning("Warning: Could not read any config file from \n    %s", filestring)
         # sys.exit(4)
     return cp
 
@@ -235,7 +229,7 @@ class ConfigTest(ConfigSection):
     lists_example: list = field(default_factory=list)
 
     @classmethod
-    def __section__name__(cls): # pyright: ignore[reportIncompatibleMethodOverride]
+    def __section__name__(cls):  # pyright: ignore[reportIncompatibleMethodOverride]
         return "test"
 
 
@@ -251,7 +245,7 @@ class ConfigMessages(ConfigSection):
     log_username_creation: bool = False
 
     @classmethod
-    def __section__name__(cls): # pyright: ignore[reportIncompatibleMethodOverride]
+    def __section__name__(cls):  # pyright: ignore[reportIncompatibleMethodOverride]
         return "messages"
 
 
@@ -262,7 +256,7 @@ class ConfigOIDC(ConfigSection):
     oidc_config: Optional[str] = ".env"
 
     @classmethod
-    def __section__name__(cls): # pyright: ignore[reportIncompatibleMethodOverride]
+    def __section__name__(cls):  # pyright: ignore[reportIncompatibleMethodOverride]
         return "oidc"
 
 
@@ -273,7 +267,7 @@ class ConfigDatabase(ConfigSection):
     db_name: str = "alise"
 
     @classmethod
-    def __section__name__(cls): # pyright: ignore[reportIncompatibleMethodOverride]
+    def __section__name__(cls):  # pyright: ignore[reportIncompatibleMethodOverride]
         return "database"
 
 

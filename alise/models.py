@@ -35,9 +35,7 @@ class LastPage(Base):
             con = sqlite3.connect(self.dbfile)
             cur = con.cursor()
 
-            res = cur.execute(
-                "SELECT url FROM lastpage where session=? ", [session]
-            ).fetchall()
+            res = cur.execute("SELECT url FROM lastpage where session=? ", [session]).fetchall()
             con.commit()
             cur.close()
             return res
@@ -217,7 +215,12 @@ class DatabaseUser(Base):
 
     ####### API KEY stuff ##########
     def store_apikey(
-        self, user_name: str, user_email: str, sub: str, iss: str, apikey: str
+        self,
+        user_name: str | None,
+        user_email: str | None,
+        sub: str | None,
+        iss: str | None,
+        apikey: str | None,
     ):
         self._db_query(
             "INSERT OR REPLACE into apikeys VALUES(?, ?, ?, ?, ?)",
