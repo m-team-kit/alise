@@ -1,0 +1,17 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: ALISE
+message: Account Linking Service
+type: software
+authors:
+  - given-names: Marcus
+    family-names: Hardt
+    email: hardt@kit.edu
+    affiliation: KIT
+    orcid: 'https://orcid.org/0000-0001-9149-244X'
+repository-code: 'https://codebase.helmholtz.cloud/m-team/tools/alise'
+url: 'https://alise.data.kit.edu'
+abstract: ' Welcome to ALISE, the friendly Account LInking SErvices.'
+license: MIT
