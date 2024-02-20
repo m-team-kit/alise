@@ -1,0 +1,76 @@
+default:
+  tags:
+    - linux
+
+stages:
+  - test
+  - build
+  - deploy
+
+.install_dependencies:
+  before_script:
+    - pip install --upgrade pip
+    - pip install tox
+
+pylint:
+  image: python:3.10
+  extends: .install_dependencies
+  stage: test
+  script: tox -e pylint
+
+black:
+  image: python:3.10
+  extends: .install_dependencies
+  stage: test
+  script: tox -e black
+
+python37:
+  image: python:3.7
+  extends: .install_dependencies
+  stage: test
+  script: tox -e py37
+
+python38:
+  image: python:3.8
+  extends: .install_dependencies
+  stage: test
+  script: tox -e py38
+
+python39:
+  image: python:3.9
+  extends: .install_dependencies
+  stage: test
+  script: tox -e py39
+
+python310:
+  image: python:3.10
+  extends: .install_dependencies
+  stage: test
+  script: tox -e py310
+
+python311:
+  image: python:3.11
+  extends: .install_dependencies
+  stage: test
+  script: tox -e py311
+
+coverage:
+  image: python:3.10
+  extends: .install_dependencies
+  stage: test
+  script: tox -e report
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+  artifacts:
+    paths:
+      - htmlcov
+    expire_in: 1 day
+
+build:
+  image: python:3.10
+  extends: .install_dependencies
+  script:
+    - python setup.py sdist
+    - pip install dist/*
+  artifacts:
+    paths:
+      - dist/*.tar.gz
