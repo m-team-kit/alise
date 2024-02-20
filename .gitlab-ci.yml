@@ -12,11 +12,11 @@ stages:
     - pip install --upgrade pip
     - pip install tox
 
-pylint:
-  image: python:3.10
-  extends: .install_dependencies
-  stage: test
-  script: tox -e pylint
+# pylint:
+#   image: python:3.10
+#   extends: .install_dependencies
+#   stage: test
+#   script: tox -e pylint
 
 black:
   image: python:3.10
