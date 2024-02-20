@@ -38,9 +38,6 @@ flaat.set_trusted_OP_list(
 )
 flaat.set_verbosity(3)
 
-# session_id   - https%3A%2F%2Fsso.sling.si%3A8443%2Fauth%2Frealms%2FSLING@3c498039-1754-4f9d-b71c-5c13739e8875
-# Identity:      https%3A%2F%2Fsso.sling.si%3A8443%2Fauth%2Frealms%2FSLING@3c498039-1754-4f9d-b71c-5c13739e8875
-
 
 def fill_json_response(user):
     response_json = Dict()
@@ -97,9 +94,7 @@ def get_mappings_subiss(request: Request, site: str, subiss: str, apikey: str):
 
 
 @router_api.get("/target/{site}/mapping/issuer/{encoded_iss}/user/{encoded_sub}")
-def get_mappings_path(
-    request: Request, site: str, encoded_iss: str, encoded_sub: str, apikey: str
-):
+def get_mappings_path(request: Request, site: str, encoded_iss: str, encoded_sub: str, apikey: str):
     logger.info(f"Site:     {site}")
     (sub, iss, provider_name, identity) = decode_input(encoded_sub, encoded_iss)
 
@@ -213,9 +208,7 @@ def get_apikey(
     apikey = randomword(32)
 
     user = DatabaseUser(site)
-    user.store_apikey(
-        user_name=username, user_email=email, sub=sub, iss=iss, apikey=apikey
-    )
+    user.store_apikey(user_name=username, user_email=email, sub=sub, iss=iss, apikey=apikey)
 
     return JSONResponse({"apikey": apikey})
 

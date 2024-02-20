@@ -158,7 +158,6 @@ oauth2_config = OAuth2Config(
             ],
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
-                # identity=lambda user: f"{quote_plus(os.getenv('HELMHOLTZ_ISS'))}@{quote_plus(user.sub)}",
             ),
         ),
         OAuth2Client(
@@ -200,7 +199,6 @@ oauth2_config = OAuth2Config(
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
                 generated_username=lambda user: f"{user.upn}",
-                # identity=lambda user: f"{quote_plus(os.getenv('VEGA_ISS'))}@{quote_plus(user.sub)}",
             ),
         ),
         OAuth2Client(

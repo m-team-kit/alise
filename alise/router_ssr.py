@@ -52,9 +52,7 @@ def session_logger(request):
     if request.user.is_authenticated:
         provider_type = get_provider_type(request)
         logger.info(f"    identity: {request.user.identity}")
-        logger.info(
-            f"    provider: {request.auth.provider.provider}," f"  {provider_type}"
-        )
+        logger.info(f"    provider: {request.auth.provider.provider}," f"  {provider_type}")
 
 
 @router_ssr.get("/privacy.html", response_class=HTMLResponse)
@@ -94,12 +92,6 @@ async def site(request: Request, site: str):
     ####### authenticated user from here on ########################################################
     user = DatabaseUser(site)
 
-    # FIXME: clean this mess up
-
-    # for attr in dir(request.auth.provider.backend):
-    #     logger.info(
-    #         f"request.auth.provider.backend.{attr:30} - {getattr(request.auth.provider.backend, attr, '')}"
-    #     )
     try:
         iss = request.auth.provider.backend.OIDC_ENDPOINT
         logger.info(f"found iss in backend config: {iss}")
@@ -239,17 +231,3 @@ async def root(request: Request):
         },
     )
     return response
-
-
-# from fastapi_oauth2.security import OAuth2
-# oauth2 = OAuth2()
-# from database import get_db
-# @router_ssr.get("/users", response_class=HTMLResponse)
-# async def users(request: Request, db: Session = Depends(get_db), _: str = Depends(oauth2)):
-#     return templates.TemplateResponse("users.html", {
-#         "json": json,
-#         "request": request,
-#         "users": [
-#             dict([(k, v) for k, v in user.__dict__.items() if not k.startswith("_")]) for user in db.query(User).all()
-#         ],
-#     })

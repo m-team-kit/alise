@@ -35,9 +35,7 @@ class LastPage(Base):
             con = sqlite3.connect(self.dbfile)
             cur = con.cursor()
 
-            res = cur.execute(
-                "SELECT url FROM lastpage where session=? ", [session]
-            ).fetchall()
+            res = cur.execute("SELECT url FROM lastpage where session=? ", [session]).fetchall()
             con.commit()
             cur.close()
             return res
