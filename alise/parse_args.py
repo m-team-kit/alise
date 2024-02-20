@@ -16,14 +16,10 @@ def parseOptions():
     # log_file = "cli.log"
     config_file = os.environ["HOME"] + f"/.config/{basename}.conf"
 
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("--verbose", "-v", action="count", default=0, help="Verbosity")
-    parser.add_argument(
-        "--debug", "-d", action="count", default=0, help="Logmode debug"
-    )
+    parser.add_argument("--debug", "-d", action="count", default=0, help="Logmode debug")
     parser.add_argument("--config", "-c", default=config_file, help="config file")
     parser.add_argument("--logfile", default=None, help="logfile")
     parser.add_argument("--loglevel", default=None)

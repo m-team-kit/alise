@@ -46,9 +46,7 @@ class HelmholtzOpenIdConnect(OpenIdConnectAuth):
     provider_type = "external"
 
     # auto fill from .well-known/openid-configuration
-    autoconf = requests.get(
-        OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15
-    ).json()
+    autoconf = requests.get(OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15).json()
     try:
         ACCESS_TOKEN_URL = autoconf["token_endpoint"]
         AUTHORIZATION_URL = autoconf["authorization_endpoint"]
@@ -70,9 +68,7 @@ class EGIOpenIdConnect(OpenIdConnectAuth):
     provider_type = "external"
 
     # auto fill from .well-known/openid-configuration
-    autoconf = requests.get(
-        OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15
-    ).json()
+    autoconf = requests.get(OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15).json()
     try:
         ACCESS_TOKEN_URL = autoconf["token_endpoint"]
         AUTHORIZATION_URL = autoconf["authorization_endpoint"]
@@ -94,9 +90,7 @@ class VegaKeycloakOpenIdConnect(OpenIdConnectAuth):
     provider_type = "internal"
 
     # auto fill from .well-known/openid-configuration
-    autoconf = requests.get(
-        OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15
-    ).json()
+    autoconf = requests.get(OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15).json()
     try:
         ACCESS_TOKEN_URL = autoconf["token_endpoint"]
         AUTHORIZATION_URL = autoconf["authorization_endpoint"]
@@ -118,9 +112,7 @@ class FelsInternalOpenIdConnect(OpenIdConnectAuth):
     provider_type = "internal"
 
     # auto fill from .well-known/openid-configuration
-    autoconf = requests.get(
-        OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15
-    ).json()
+    autoconf = requests.get(OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15).json()
     try:
         ACCESS_TOKEN_URL = autoconf["token_endpoint"]
         AUTHORIZATION_URL = autoconf["authorization_endpoint"]
