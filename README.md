@@ -34,7 +34,7 @@ APIKEY=$(curl -sH "Authorization: Bearer $(oidc-token egi)" ${ALISE}/target/vega
 ```
 ISSUER=https://aai-demo.egi.eu/auth/realms/egi
 SUBJECT=d7a53cbe3e966c53ac64fde7355956560282158ecac8f3d2c770b474862f4756@egi.eu
-curl  ${ALISE}/target/vega-kc/mapping/issuer/$(tools/urlencode.py `tools/urlencode.py ${ISSUER}`)/user/$(tools/urlencode.py ${SUBJECT})?apikey=$APIKEY_LOCAL |jq .
+curl  ${ALISE}/target/vega-kc/mapping/issuer/$(tools/hashencode.py ${ISSUER})/user/$(tools/urlencode.py ${SUBJECT})?apikey=$APIKEY |jq .
 ```
 
 !!! Note: The issuer needs to be encoded TWICE, because otherwise some
