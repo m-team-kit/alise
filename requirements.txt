@@ -5,3 +5,4 @@ addict
 uvicorn
 python-dotenv
 jinja2-time
+python-dotenv
