@@ -228,12 +228,13 @@ def get_provider_name_by_iss(iss: str) -> str:
 
 def get_provider_name_by_hash(iss: str, hash_method="sha1") -> str:
     for x in oauth2_config.clients:
-        hash_function = getattr(hashlib, hash_method)()
-        hash_function.update((x.backend.OIDC_ENDPOINT + "\n").encode())  # pyright: ignore
-        hash = hash_function.hexdigest()
-        # logger.debug(F"hash: {hash} - {iss} - {x.backend.OIDC_ENDPOINT.encode()}")
-        if hash == iss:  # pyright: ignore
-            return x.backend.name
+        for test_string in [x.backend.OIDC_ENDPOINT, x.backend.OIDC_ENDPOINT + "\n"]:
+            hash_function = getattr(hashlib, hash_method)()
+            hash_function.update((test_string).encode())  # pyright: ignore
+            hash = hash_function.hexdigest()
+            # logger.debug(F"hash: {hash} - {iss} - {x.backend.OIDC_ENDPOINT.encode()}")
+            if hash == iss:  # pyright: ignore
+                return x.backend.name
     return ""
 
 
