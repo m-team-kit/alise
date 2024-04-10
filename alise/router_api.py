@@ -65,10 +65,10 @@ def decode_input(encoded_sub, encoded_iss):
     provider_name = get_provider_name_by_iss(iss)
     logger.debug(f"provider_name: {provider_name}")
     identity = f"{provider_name}:{sub}"
-    logger.info(f"     sub: {sub}")
-    logger.info(f"     iss: {iss}")
-    logger.info(f"     provider_name: {provider_name}")
-    logger.info(f"          identity: {identity}")
+    logger.info(f"  sub:      '{sub}'")
+    logger.info(f"  iss:      '{iss}'")
+    logger.info(f"  provider: '{provider_name}'")
+    logger.info(f"  identity: '{identity}'")
 
     return (sub, iss, provider_name, identity)
 
