@@ -4,6 +4,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+import hashlib
 
 # from social_core.backends.github import GithubOAuth2
 from social_core.backends.google import GoogleOAuth2
@@ -221,6 +222,17 @@ def get_provider_iss_by_name(name: str) -> str:
 def get_provider_name_by_iss(iss: str) -> str:
     for x in oauth2_config.clients:
         if x.backend.OIDC_ENDPOINT == iss:  # pyright: ignore
+            return x.backend.name
+    return ""
+
+
+def get_provider_name_by_hash(iss: str, hash_method="sha1") -> str:
+    for x in oauth2_config.clients:
+        hash_function = getattr(hashlib, hash_method)()
+        hash_function.update((x.backend.OIDC_ENDPOINT+"\n").encode())
+        hash = hash_function.hexdigest()
+        # logger.debug(F"hash: {hash} - {iss} - {x.backend.OIDC_ENDPOINT.encode()}")
+        if hash == iss:  # pyright: ignore
             return x.backend.name
     return ""
 

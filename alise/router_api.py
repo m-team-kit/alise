@@ -18,6 +18,7 @@ from fastapi.security import HTTPBasicCredentials, HTTPBearer
 from alise.logsetup import logger
 from alise import exceptions
 from alise.oauth2_config import get_provider_name_by_iss
+from alise.oauth2_config import get_provider_name_by_hash
 from alise.oauth2_config import get_sub_iss_by_identity
 from alise.oauth2_config import get_provider_name_sub_by_identity
 
@@ -63,6 +64,8 @@ def decode_input(encoded_sub, encoded_iss):
     sub = unquote_plus(encoded_sub)
     iss = unquote_plus(encoded_iss)
     provider_name = get_provider_name_by_iss(iss)
+    if not provider_name:
+        provider_name = get_provider_name_by_hash(iss)
     logger.debug(f"provider_name: {provider_name}")
     identity = f"{provider_name}:{sub}"
     logger.info(f"  sub:      '{sub}'")
