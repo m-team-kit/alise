@@ -32,6 +32,7 @@ router_api = APIRouter(prefix="/api/v1")
 flaat.set_trusted_OP_list(
     [
         "https://aai.egi.eu/auth/realms/egi",
+        "https://aai-demo.egi.eu/auth/realms/egi",
         "https://accounts.google.com/",
         "https://login.helmholtz.de/oauth2/",
     ]
