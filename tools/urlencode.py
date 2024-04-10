@@ -8,10 +8,10 @@ except ImportError:
 
 if len(sys.argv) > 1:
     for arg in sys.argv[1:]:
-        print (quote_plus(arg))
+        print(quote_plus(arg))
 else:
     data = sys.stdin.readlines()
     dat = ""
     for line in data:
         dat += line
-    print (quote_plus(str(dat)))
+    print(quote_plus(str(dat)))
