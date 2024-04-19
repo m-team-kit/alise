@@ -85,13 +85,13 @@ def get_mappings_subiss(request: Request, site: str, subiss: str, apikey: str):
 
     user = DatabaseUser(site)
     if not user.apikey_valid(apikey):
-        return JSONResponse({"message": "invalid apikey"}, status_code=401)
+        return JSONResponse({"detail": [{"msg": "invalid apikey", "type": "invalid"}]}, status_code=401)
 
     session_id = user.get_session_id_by_user_id(identity)
     logger.info(f"session_id:{session_id}")
 
     if not session_id:
-        return JSONResponse({"message": "no such user"}, status_code=404)
+        return JSONResponse({"detail": [{"msg": "no such user", "type": "not-mapped"}]}, status_code=401)
     user.load_all_identities(session_id)
 
     return fill_json_response(user)
@@ -104,13 +104,13 @@ def get_mappings_path(request: Request, site: str, encoded_iss: str, encoded_sub
 
     user = DatabaseUser(site)
     if not user.apikey_valid(apikey):
-        return JSONResponse({"message": "invalid apikey"}, status_code=401)
+        return JSONResponse({"detail": [{"msg": "invalid apikey", "type": "invalid"}]}, status_code=401)
 
     session_id = user.get_session_id_by_user_id(identity, "external")
     logger.info(f"session_id:{session_id}")
 
     if not session_id:
-        return JSONResponse({"message": "no such user"}, status_code=404)
+        return JSONResponse({"detail": [{"msg": "no such user", "type": "not-mapped"}]}, status_code=401)
 
     user.load_all_identities(session_id)
 
