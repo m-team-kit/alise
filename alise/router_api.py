@@ -47,6 +47,7 @@ def fill_json_response(user):
     response_json.internal.sub = int_sub
     response_json.internal.iss = int_iss
     response_json.internal.username = user.int_id.jsondata.generated_username
+    response_json.internal.last_seen = user.int_id.last_seen
     response_json.internal.display_name = user.int_id.jsondata.display_name
 
     response_json.external = []
@@ -55,6 +56,7 @@ def fill_json_response(user):
         ext_sub, ext_iss = get_sub_iss_by_identity(e.identity)
         response_json.external[-1].sub = ext_sub
         response_json.external[-1].iss = ext_iss
+        response_json.external[-1].last_seen = e.last_seen
         response_json.external[-1].display_name = e.jsondata.display_name
 
     return JSONResponse(response_json)

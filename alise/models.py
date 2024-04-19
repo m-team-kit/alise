@@ -2,6 +2,7 @@
 # pylint: disable = logging-fstring-interpolation
 import sqlite3
 import json
+import time
 from addict import Dict
 
 from alise import exceptions
@@ -47,8 +48,8 @@ class LastPage(Base):
 
 class DatabaseUser(Base):
     SCHEMA = [
-        "CREATE table if not exists int_user (session_id TEXT, identity TEXT, provider TEXT, jsonstr JSON)",
-        "CREATE table if not exists ext_user (session_id TEXT, identity TEXT, provider TEXT, jsonstr JSON)",
+        "CREATE table if not exists int_user (session_id TEXT, identity TEXT, provider TEXT, jsonstr JSON, last_seen INTEGER)",
+        "CREATE table if not exists ext_user (session_id TEXT, identity TEXT, provider TEXT, jsonstr JSON, last_seen INTEGER)",
         "CREATE table if not exists sites (name TEXT, comment TEXT)",
         "CREATE table if not exists apikeys (ownername TEXT, owneremail TEXT, sub TEXT, iss TEXT, apikey TEXT)",
     ]
@@ -93,13 +94,15 @@ class DatabaseUser(Base):
             raise
 
         logger.debug(f" ----------> provider: {jsondata.provider}")
+        epoch_time = int(time.time())
         self._db_query(
-            f"INSERT OR REPLACE into {location}_user values(?, ?, ?, ?)",
+            f"INSERT OR REPLACE into {location}_user values(?, ?, ?, ?, ?)",
             (
                 session_id,
                 identity,
                 jsondata.provider,
                 jsonstr,
+                epoch_time,
             ),
         )
 
@@ -183,7 +186,7 @@ class DatabaseUser(Base):
 
     def get_users(self, value, db_key, location):
         # logger.debug(f"db_key: {db_key}")
-        keys = ["session_id", "identity", "jsonstr"]
+        keys = ["session_id", "identity", "jsonstr", "last_seen"]
         if db_key not in keys:
             message = "Key not found in internal database"
             logger.error(message)
