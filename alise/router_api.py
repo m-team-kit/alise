@@ -59,6 +59,8 @@ def fill_json_response(user):
         response_json.external[-1].last_seen = e.last_seen
         response_json.external[-1].display_name = e.jsondata.display_name
 
+    response_json.headers["X-Marcus"] = "xxxxxxxx"
+
     return JSONResponse(response_json)
 
 
@@ -117,50 +119,6 @@ def get_mappings_path(request: Request, site: str, encoded_iss: str, encoded_sub
     user.load_all_identities(session_id)
 
     return fill_json_response(user)
-
-
-# @router_api.get("/{site}/get_mappings_by_id/{identity}")
-# def get_mappings_by_id(request: Request, site: str, identity: str):
-#     logger.info(f"Site:     {site}")
-#     logger.info(f"Identity: {identity}")
-#
-#     user = DatabaseUser(site)
-#     session_id = user.get_session_id_by_user_id(identity, "external")
-#     logger.info(f"session_id:{session_id}")
-#     if not session_id:
-#         logger.info("no external entry found for user, tring internal")
-#         session_id = user.get_session_id_by_user_id(identity, "internal")
-#         logger.info(f"internal session_id:{session_id}")
-#         if not session_id:
-#             logger.info("no entry found for user")
-#             return JSONResponse({"message": "No linkage found for this user"})
-#             # raise exceptions.BadRequest({"message": "No linkage found for this user"})
-#
-#     user.load_all_identities(session_id)
-#     # logger.debug(user.ext_ids)
-#
-#
-# @router_api.get("/{site}/get_mappings_by_id_raw/{identity}")
-# def get_mappings_by_id_raw(request: Request, site: str, identity: str):
-#     logger.info(f"Site:     {site}")
-#     logger.info(f"Identity: {identity}")
-#
-#     user = DatabaseUser(site)
-#     session_id = user.get_session_id_by_user_id(identity, "external")
-#     logger.info(f"session_id:{session_id}")
-#     if not session_id:
-#         logger.info("no external entry found for user, tring internal")
-#         session_id = user.get_session_id_by_user_id(identity, "internal")
-#         logger.info(f"internal session_id:{session_id}")
-#         if not session_id:
-#             logger.info("no entry found for user")
-#             return JSONResponse({"message": "No linkage found for this user"})
-#
-#     user.load_all_identities(session_id)
-#     # logger.debug(user.ext_ids)
-#
-#     response = JSONResponse({"internal_id": user.int_id, "external_ids": user.ext_ids})
-#     return response
 
 
 @router_api.get("/version")
