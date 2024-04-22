@@ -257,7 +257,7 @@ def get_providers(provider_type):
             if x.backend.provider_type == provider_type:  # pyright: ignore
                 names.append(x.backend.name)
         except AttributeError:
-            if provider_type == "external":   # external providers may not
+            if provider_type == "external":  # external providers may not
                 names.append(x.backend.name)  # explicitly define this attribute
     return names
 
