@@ -257,9 +257,23 @@ def get_providers(provider_type):
             if x.backend.provider_type == provider_type:  # pyright: ignore
                 names.append(x.backend.name)
         except AttributeError:
-            if provider_type == "external":  # external providers may not
+            if provider_type == "external":   # external providers may not
                 names.append(x.backend.name)  # explicitly define this attribute
     return names
+
+
+def get_providers_long():
+    providers = {"internal": [], "external": []}
+    for x in oauth2_config.clients:
+        try:
+            provider_type = x.backend.provider_type
+        except AttributeError as e:
+            logger.warning(e)
+            provider_type = "external"
+        provider_name = x.backend.name
+        provider_iss = x.backend.OIDC_ENDPOINT
+        providers[provider_type].append({"name": provider_name, "iss": provider_iss})
+    return providers
 
 
 def get_internal_providers():
