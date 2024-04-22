@@ -21,10 +21,11 @@ from alise.oauth2_config import get_provider_name_by_iss
 from alise.oauth2_config import get_provider_name_by_hash
 from alise.oauth2_config import get_sub_iss_by_identity
 from alise.oauth2_config import get_provider_name_sub_by_identity
+from alise.oauth2_config import get_providers_long
 
 from alise.models import DatabaseUser
 
-VERSION = "0.1.3-beta"
+VERSION = "1.0.5-dev3"
 # app = FastAPI()
 flaat = Flaat()
 security = HTTPBearer()
@@ -59,9 +60,10 @@ def fill_json_response(user):
         response_json.external[-1].last_seen = e.last_seen
         response_json.external[-1].display_name = e.jsondata.display_name
 
-    response_json.headers["X-Marcus"] = "xxxxxxxx"
-
-    return JSONResponse(response_json)
+    headers = {"Cache-Control": "public", "max-age": "31536000", "x-alise-version": VERSION}
+    # "Age": "xxxxxxxx",
+    # "x-alise-user-last-seen": "",
+    return JSONResponse(response_json, headers=headers)
 
 
 def decode_input(encoded_sub, encoded_iss):
@@ -89,13 +91,17 @@ def get_mappings_subiss(request: Request, site: str, subiss: str, apikey: str):
 
     user = DatabaseUser(site)
     if not user.apikey_valid(apikey):
-        return JSONResponse({"detail": [{"msg": "invalid apikey", "type": "invalid"}]}, status_code=401)
+        return JSONResponse(
+            {"detail": [{"msg": "invalid apikey", "type": "invalid"}]}, status_code=401
+        )
 
     session_id = user.get_session_id_by_user_id(identity)
     logger.info(f"session_id:{session_id}")
 
     if not session_id:
-        return JSONResponse({"detail": [{"msg": "no such user", "type": "not-mapped"}]}, status_code=401)
+        return JSONResponse(
+            {"detail": [{"msg": "no such user", "type": "not-mapped"}]}, status_code=401
+        )
     user.load_all_identities(session_id)
 
     return fill_json_response(user)
@@ -108,13 +114,17 @@ def get_mappings_path(request: Request, site: str, encoded_iss: str, encoded_sub
 
     user = DatabaseUser(site)
     if not user.apikey_valid(apikey):
-        return JSONResponse({"detail": [{"msg": "invalid apikey", "type": "invalid"}]}, status_code=401)
+        return JSONResponse(
+            {"detail": [{"msg": "invalid apikey", "type": "invalid"}]}, status_code=401
+        )
 
     session_id = user.get_session_id_by_user_id(identity, "external")
     logger.info(f"session_id:{session_id}")
 
     if not session_id:
-        return JSONResponse({"detail": [{"msg": "no such user", "type": "not-mapped"}]}, status_code=401)
+        return JSONResponse(
+            {"detail": [{"msg": "no such user", "type": "not-mapped"}]}, status_code=401
+        )
 
     user.load_all_identities(session_id)
 
@@ -195,3 +205,10 @@ if __name__ == "__main__":
     # uvicorn.run(test, host="0.0.0.0", port=8000)
     # uvicorn.run(app, host="0.0.0.0", port=8000)
     uvicorn.run(router_api, host="0.0.0.0", port=8000)
+
+
+@router_api.get("/alise/supported_issuers")
+def list_supported_issuers(request: Request):
+    supported_issuers = get_providers_long()
+    headers = {"x-alise-version": VERSION}
+    return JSONResponse({"supported_issuers": supported_issuers}, headers=headers)
