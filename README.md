@@ -40,3 +40,20 @@ curl  ${ALISE}/target/vega-kc/mapping/issuer/$(tools/hashencode.py ${ISSUER})/us
 !!! Note: The issuer needs to be encoded TWICE, because otherwise some
     python framework tries to decode that URL, which will break my
     assumptions.
+
+## Get list of supported providers
+
+```
+curl -v ${ALISE}/alise/supported_issuers
+```
+
+## Caching headers
+
+Alise supports these headers in general, the latter two of which might be
+used for caching
+
+```
+x-alise-version: 1.0.5-dev3
+cache-control: public
+max-age: 31536000
+```
