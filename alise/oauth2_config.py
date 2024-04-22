@@ -228,7 +228,11 @@ def get_provider_name_by_iss(iss: str) -> str:
 
 def get_provider_name_by_hash(iss: str, hash_method="sha1") -> str:
     for x in oauth2_config.clients:
-        for test_string in [x.backend.OIDC_ENDPOINT, x.backend.OIDC_ENDPOINT + "\n"]:
+        for test_string in [
+            x.backend.OIDC_ENDPOINT,  # pyright: ignore
+            x.backend.OIDC_ENDPOINT + "\n",  # pyright: ignore
+        ]:
+
             hash_function = getattr(hashlib, hash_method)()
             hash_function.update((test_string).encode())  # pyright: ignore
             hash = hash_function.hexdigest()
@@ -266,12 +270,12 @@ def get_providers_long():
     providers = {"internal": [], "external": []}
     for x in oauth2_config.clients:
         try:
-            provider_type = x.backend.provider_type
+            provider_type = x.backend.provider_type  # pyright: ignore
         except AttributeError as e:
             logger.warning(e)
             provider_type = "external"
         provider_name = x.backend.name
-        provider_iss = x.backend.OIDC_ENDPOINT
+        provider_iss = x.backend.OIDC_ENDPOINT  # pyright: ignore
         providers[provider_type].append({"name": provider_name, "iss": provider_iss})
     return providers
 
