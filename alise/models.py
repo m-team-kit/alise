@@ -70,7 +70,7 @@ class DatabaseUser(Base):
             self.store_user(self.int_id, "int", session_id)
         else:
             # FIXME: update the user!!
-            logger.warning("not storing user, UPDATING")
+            logger.info("not storing user, UPDATING")
             self.update_user(self.int_id, "int")
 
     def store_external_user(self, jsondata, session_id):
@@ -80,7 +80,7 @@ class DatabaseUser(Base):
             self.store_user(self.ext_ids[-1], "ext", session_id)
         else:
             # FIXME: update the user!!
-            logger.warning("not storing user, UPDATING")
+            logger.info("not storing user, UPDATING")
             self.update_user(self.ext_ids[-1], "ext")
 
     def store_user(self, jsondata, location, session_id):
@@ -94,7 +94,7 @@ class DatabaseUser(Base):
             raise
 
         logger.debug(f" ----------> provider: {jsondata.provider}")
-        epoch_time = int(time.time())
+        epoch_time_now = int(time.time())
         self._db_query(
             f"INSERT OR REPLACE into {location}_user values(?, ?, ?, ?, ?)",
             (
@@ -102,7 +102,7 @@ class DatabaseUser(Base):
                 identity,
                 jsondata.provider,
                 jsonstr,
-                epoch_time,
+                epoch_time_now,
             ),
         )
 
@@ -116,9 +116,10 @@ class DatabaseUser(Base):
             logger.error(json.dumps(jsondata, sort_keys=True, indent=4))
             raise
 
+        epoch_time_now = int(time.time())
         self._db_query(
-            f"UPDATE {location}_user set jsonstr = ? WHERE identity=?",
-            (jsonstr, identity),
+            f"UPDATE {location}_user set jsonstr = ?, last_seen = ? WHERE identity=?",
+            (jsonstr, epoch_time_now, identity),
         )
 
     def delete_external_user(self, identity, provider):
