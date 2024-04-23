@@ -28,7 +28,7 @@ class SSROAuth2Middleware(BaseHTTPMiddleware):
         if URL_start == "/api":
             await super().__call__(scope, receive, send)
         else:
-            print("xxxxxxx: upstream")
+            # print("xxxxxxx: upstream")
             return await self.oauth2_middleware.__call__(scope, receive, send)
 
     # async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
