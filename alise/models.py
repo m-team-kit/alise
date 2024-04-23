@@ -54,6 +54,8 @@ class DatabaseUser(Base):
         "CREATE table if not exists apikeys (ownername TEXT, owneremail TEXT, sub TEXT, iss TEXT, apikey TEXT)",
     ]
 
+    # alter table ext_user add column last_seen INTEGER;
+
     def __init__(self, site_name):
         self.site_name = site_name
         super().__init__()
