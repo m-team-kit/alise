@@ -8,20 +8,32 @@
 Tool to link accounts
 
 ## Installation
+
 Account LInking SErvice is available on [PyPI](https://pypi.org/project/alise/). Install using `pip`:
-```
+
+```bash
 pip install alise
 ```
 
 You can also install from the git repository:
-```
+
+```bash
 git clone https://github.com/marcvs/alise
 pip install -e ./alise
 ```
 
+### Dependencies
+
+ALISE depends on gunicorn:
+
+```bash
+apt install gunicorn
+```
+
+
 ## Run locally (e.g. for testing)
 
-```
+```bash
 # from the dir where alise is installed:
 gunicorn alise.daemon:app
 ```
@@ -32,7 +44,8 @@ gunicorn alise.daemon:app
 
 We provide an nginx configuration file in `alise/etc/nginx.alise`. Simply
 copy or it to nginx like:
-```
+
+```bash
 ln -s $PWD/alise/etc/nginx.alise /etc/nginx/sites-enabled
 ```
 
@@ -40,7 +53,8 @@ ln -s $PWD/alise/etc/nginx.alise /etc/nginx/sites-enabled
 
 We provide a systemd service file in `alise/etc/alise.service`. Simply
 copy link it to systemd like:
-```
+
+```bash
 ln -s $PWD/alise/etc/alise.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable alise.service
@@ -52,7 +66,7 @@ systemctl start alise.service
 
 ALISE is configured via two files:
 
-- `/etc/alise/alise.conf`: 
+- `/etc/alise/alise.conf`:
     - Logging
     - Location of `oidc.conf`
     - Template provided
