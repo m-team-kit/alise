@@ -9,8 +9,6 @@ from alise import exceptions
 from alise.database import Base
 from alise.logsetup import logger
 
-# vega_db = VegaUsers()
-
 
 class LastPage(Base):
     SCHEMA = ["""create table if not exists lastpage (session TEXT, url TEXT)"""]
