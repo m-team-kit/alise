@@ -4,7 +4,8 @@
 [![SQAaaS badge shields.io](https://img.shields.io/badge/sqaaas%20software-bronze-e6ae77)](https://api.eu.badgr.io/public/assertions/udGVwFI8Qe6J_dEYVo34BA "SQAaaS bronze badge achieved")
 
 # Account LInking SErvice
-Tool to link accounts 
+
+Tool to link accounts
 
 ## Installation
 Account LInking SErvice is available on [PyPI](https://pypi.org/project/alise/). Install using `pip`:
@@ -18,42 +19,44 @@ git clone https://github.com/marcvs/alise
 pip install -e ./alise
 ```
 
-# Using ALISE
-
-## Get an API-key
-
-You need to be authenticated with an Access Token to get your API key.
-Here we use the `oidc-agent` configuration named `egi`:
-```
-ALISE=https://alise.data.kit.edu/api/v1
-APIKEY=$(curl -sH "Authorization: Bearer $(oidc-token egi)" ${ALISE}/target/vega-kc/get_apikey | jq -r .apikey
-```
-
-## Find linked IDs
+## Run locally (e.g. for testing)
 
 ```
-ISSUER=https://aai-demo.egi.eu/auth/realms/egi
-SUBJECT=d7a53cbe3e966c53ac64fde7355956560282158ecac8f3d2c770b474862f4756@egi.eu
-curl  ${ALISE}/target/vega-kc/mapping/issuer/$(tools/hashencode.py ${ISSUER})/user/$(tools/urlencode.py ${SUBJECT})?apikey=$APIKEY |jq .
+# from the dir where alise is installed:
+gunicorn alise.daemon:app
 ```
 
-!!! Note: The issuer needs to be encoded TWICE, because otherwise some
-    python framework tries to decode that URL, which will break my
-    assumptions.
+## Run as a service
 
-## Get list of supported providers
+### Nginx
 
+We provide an nginx configuration file in `alise/etc/nginx.alise`. Simply
+copy or it to nginx like:
 ```
-curl -v ${ALISE}/alise/supported_issuers
+ln -s $PWD/alise/etc/nginx.alise /etc/nginx/sites-enabled
 ```
 
-## Caching headers
+## Systemd
 
-Alise supports these headers in general, the latter two of which might be
-used for caching
+We provide a systemd service file in `alise/etc/alise.service`. Simply
+copy link it to systemd like:
+```
+ln -s $PWD/alise/etc/alise.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable alise.service
+systemctl start alise.service
+```
 
-```
-x-alise-version: 1.0.5-dev3
-cache-control: public
-max-age: 31536000
-```
+
+## Configuration
+
+ALISE is configured via two files:
+
+- `/etc/alise/alise.conf`: 
+    - Logging
+    - Location of `oidc.conf`
+    - Template provided
+
+- `/etc/alise/oidc.conf`
+    - OIDC Providers
+    - Template provided

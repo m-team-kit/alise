@@ -3,7 +3,8 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 # Account LInking SErvice
-Tool to link accounts 
+
+Tool to link accounts - developer documentation
 
 ## API Usage:
 
@@ -35,17 +36,40 @@ http https://alise.data.kit.edu/api/v1/target/vega-kc/mapping/issuer/`urlencode.
 curl https://alise.data.kit.edu/api/v1/target/vega-kc/mapping/issuer/`urlencode.py <issuer>`/user/`urlencode.py <subject>`?apikey=<apikey> | jq .
 ```
 
-## Installation
+## Get an API-key
 
-Account LInking SErvice is available on [PyPI](https://pypi.org/project/alise/). Install using `pip`:
+You need to be authenticated with an Access Token to get your API key.
+Here we use the `oidc-agent` configuration named `egi`:
 ```
-pip install alise
-```
-
-You can also install from the git repository:
-```
-git clone https://github.com/marcvs/alise
-pip install -e ./alise
+ALISE=https://alise.data.kit.edu/api/v1
+APIKEY=$(curl -sH "Authorization: Bearer $(oidc-token egi)" ${ALISE}/target/vega-kc/get_apikey | jq -r .apikey
 ```
 
+## Find linked IDs
 
+```
+ISSUER=https://aai-demo.egi.eu/auth/realms/egi
+SUBJECT=d7a53cbe3e966c53ac64fde7355956560282158ecac8f3d2c770b474862f4756@egi.eu
+curl  ${ALISE}/target/vega-kc/mapping/issuer/$(tools/hashencode.py ${ISSUER})/user/$(tools/urlencode.py ${SUBJECT})?apikey=$APIKEY |jq .
+```
+
+!!! Note: The issuer needs to be encoded TWICE, because otherwise some
+    python framework tries to decode that URL, which will break my
+    assumptions.
+
+## Get list of supported providers
+
+```
+curl -v ${ALISE}/alise/supported_issuers
+```
+
+## Caching headers
+
+Alise supports these headers in general, the latter two of which might be
+used for caching
+
+```
+x-alise-version: 1.0.5-dev3
+cache-control: public
+max-age: 31536000
+```
