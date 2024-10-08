@@ -202,7 +202,8 @@ async def root(request: Request):
     # session_id = request.cookies.get("session_id", "")
     # lp = LastPage()
     # url = lp.get(session_id)
-    # logger.info(f"redirect url: {url}")
+    url = request.url
+    logger.debug(f"fucking redirect url: {url}")
 
     redirect_uri = request.cookies.get("redirect_uri", "")
     if redirect_uri:
