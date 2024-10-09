@@ -20,8 +20,8 @@ def main():
     logger.warning("This is just a test for 'warning'")
     logger.error("This is just a test for 'error'")
 
-    print(f"Config.test.your_config: {CONFIG.test.your_config}")
-    print(f"Config.test.lists_example: {CONFIG.test.lists_example}")
+    print(f"Config.test.your_config: {CONFIG['test']['your_config']}")
+    print(f"Config.test.lists_example: {CONFIG['test']['lists_example']}")
     return 0
 
 
