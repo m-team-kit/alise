@@ -322,6 +322,7 @@ class ConfigOPConf(ConfigSection):
     claims: list = field(default_factory=list)
     internal: bool = False
     scopes: list = field(default_factory=list)
+    username_claim: str = "sub"
 
     def get_info(self) -> dict:
         """Returns a dict with the info for this OP"""
