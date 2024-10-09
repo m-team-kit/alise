@@ -203,7 +203,7 @@ async def root(request: Request):
     # lp = LastPage()
     # url = lp.get(session_id)
     url = request.url
-    logger.debug(f"fucking redirect url: {url}")
+    logger.debug(f"redirect url: {url}")
 
     redirect_uri = request.cookies.get("redirect_uri", "")
     if redirect_uri:
