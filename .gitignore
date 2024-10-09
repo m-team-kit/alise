@@ -110,3 +110,4 @@ test-tokens.sh
 install_certs.sh
 test.py
 coverage.svg
+alise.conf
