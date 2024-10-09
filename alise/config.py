@@ -265,7 +265,6 @@ class ConfigDatabase(ConfigSection):
 class ConfigOPConf(ConfigSection):
     """Config section for authorisation of one OP."""
 
-    audience: str
     op_url: str = ""
     client_id: str = ""
     client_secret: str = ""
