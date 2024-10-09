@@ -2,6 +2,7 @@
 # pylint: disable = logging-fstring-interpolation
 
 import os
+from sys import exit
 import requests
 from dotenv import load_dotenv
 import hashlib
@@ -30,182 +31,71 @@ CONFIG_KEY_MAP = {
     # apparently not used: = rsp.json()["introspection_endpoint"]
 }
 
-logger.info(f"Loading dotenv from {CONFIG.oidc.oidc_config}")
-if not load_dotenv(dotenv_path=CONFIG.oidc.oidc_config):
-    raise exceptions.InternalException("Could not load dotenv")
+def make_oidc_config_class_google(op_name):
+    class NewClass(GoogleOAuth2):
+        OIDC_ENDPOINT = os.getenv("GOOGLE_ISS", "")
+        provider_type = "external"
+    return NewClass
 
-
-# make sure OIDC_ENDPOINT is defined
-class MyGoogleOAuth2(GoogleOAuth2):
-    OIDC_ENDPOINT = os.getenv("GOOGLE_ISS", "")
-
-
-class HelmholtzOpenIdConnect(OpenIdConnectAuth):
-    name = "helmholtz"
-    OIDC_ENDPOINT = os.getenv("HELMHOLTZ_ISS", "")
-    ID_TOKEN_ISSUER = OIDC_ENDPOINT
-    provider_type = "external"
-
-    # auto fill from .well-known/openid-configuration
-    autoconf = requests.get(OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15).json()
+def make_oidc_config_class(op_name, op_config):
+    class NewClass(OpenIdConnectAuth):
+        def setting(self, op_name, default=None):
+            return getattr(self, op_name, default)
     try:
-        ACCESS_TOKEN_URL = autoconf["token_endpoint"]
-        AUTHORIZATION_URL = autoconf["authorization_endpoint"]
-        REVOKE_TOKEN_URL = autoconf["revocation_endpoint"]
-        USERINFO_URL = autoconf["userinfo_endpoint"]
-        JWKS_URI = autoconf["jwks_uri"]
-    except KeyError as e:
-        logger.error(f"Cannot find {e} for {name}")
-    logger.debug(f"Initialised {name}")
+        ## Sonderlocke for google
+        if op_config.op_url.startswith("https://accounts.google.com"):
+            return make_oidc_config_class_google(op_name)
 
-    def setting(self, name, default=None):
-        return getattr(self, name, default)
-
-
-class EGIOpenIdConnect(OpenIdConnectAuth):
-    name = "egi"
-    OIDC_ENDPOINT = os.getenv("EGI_ISS", "")
-    ID_TOKEN_ISSUER = OIDC_ENDPOINT
-    provider_type = "external"
-
-    # auto fill from .well-known/openid-configuration
-    autoconf = requests.get(OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15).json()
+        NewClass.__name__ = op_name
+        NewClass.name = op_name
+        NewClass.name=op_name
+        NewClass.OIDC_ENDPOINT = op_config.op_url
+        NewClass.ID_TOKEN_ISSUER = NewClass.OIDC_ENDPOINT
+        NewClass.provider_type = "external"
+        if op_config.internal:
+            NewClass.provider_type = "internal"
+    except AttributeError as e:
+        logger.warning(f"Cannot find attribute for {op_name}: {e}")
+    
+    ## Autoconf
+    autoconf = requests.get(NewClass.OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15).json()
     try:
-        ACCESS_TOKEN_URL = autoconf["token_endpoint"]
-        AUTHORIZATION_URL = autoconf["authorization_endpoint"]
-        REVOKE_TOKEN_URL = autoconf["revocation_endpoint"]
-        USERINFO_URL = autoconf["userinfo_endpoint"]
-        JWKS_URI = autoconf["jwks_uri"]
+        NewClass.ACCESS_TOKEN_URL = autoconf["token_endpoint"]
+        NewClass.AUTHORIZATION_URL = autoconf["authorization_endpoint"]
+        NewClass.REVOKE_TOKEN_URL = autoconf["revocation_endpoint"]
+        NewClass.USERINFO_URL = autoconf["userinfo_endpoint"]
+        NewClass.JWKS_URI = autoconf["jwks_uri"]
     except KeyError as e:
-        logger.error(f"Cannot find {e} for {name}")
-    logger.debug(f"Initialised {name}")
-
-    def setting(self, name, default=None):
-        return getattr(self, name, default)
+        logger.warning(f"Cannot find {e} for {op_name}")
+    return NewClass 
 
 
-class VegaKeycloakOpenIdConnect(OpenIdConnectAuth):
-    name = "vega-kc"
-    OIDC_ENDPOINT = os.getenv("VEGA_ISS", "")
-    ID_TOKEN_ISSUER = OIDC_ENDPOINT
-    provider_type = "internal"
-
-    # auto fill from .well-known/openid-configuration
-    autoconf = requests.get(OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15).json()
-    try:
-        ACCESS_TOKEN_URL = autoconf["token_endpoint"]
-        AUTHORIZATION_URL = autoconf["authorization_endpoint"]
-        REVOKE_TOKEN_URL = autoconf["revocation_endpoint"]
-        USERINFO_URL = autoconf["userinfo_endpoint"]
-        JWKS_URI = autoconf["jwks_uri"]
-    except KeyError as e:
-        logger.error(f"Cannot find {e} for {name}")
-    logger.debug(f"Initialised {name}")
-
-    def setting(self, name, default=None):
-        return getattr(self, name, default)
+def make_oidc_config(op_name):
+    op_config=CONFIG.auth.get_op_config(op_name)
+    backend=make_oidc_config_class(op_name, op_config)
+    client= OAuth2Client(
+            backend=backend,
+            client_id=op_config.client_id,
+            client_secret=op_config.client_secret,
+            scope=op_config.scopes,
+            claims=Claims(
+                identity=lambda user: f"{user.provider}:{user.sub}",
+                generated_username=lambda user: f"{user.upn}",
+            ),
+        )
+    return client
 
 
-class FelsInternalOpenIdConnect(OpenIdConnectAuth):
-    name = "kit-fels"
-    OIDC_ENDPOINT = os.getenv("FELS_ISS", "")
-    ID_TOKEN_ISSUER = OIDC_ENDPOINT
-    provider_type = "internal"
-
-    # auto fill from .well-known/openid-configuration
-    autoconf = requests.get(OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15).json()
-    try:
-        ACCESS_TOKEN_URL = autoconf["token_endpoint"]
-        AUTHORIZATION_URL = autoconf["authorization_endpoint"]
-        REVOKE_TOKEN_URL = autoconf["revocation_endpoint"]
-        USERINFO_URL = autoconf["userinfo_endpoint"]
-        JWKS_URI = autoconf["jwks_uri"]
-    except KeyError as e:
-        logger.error(f"Cannot find {e} for {name}")
-    logger.debug(f"Initialised {name}")
-
-    def setting(self, name, default=None):
-        return getattr(self, name, default)
-
+configured_clients = []
+for op_name in CONFIG.auth.get_op_names():
+    configured_clients.append(make_oidc_config(op_name))
 
 oauth2_config = OAuth2Config(
     allow_http=True,
     jwt_secret="secret",
     jwt_expires=900,
     jwt_algorithm="HS256",
-    # jwt_secret=os.getenv("JWT_SECRET"),
-    # jwt_expires=os.getenv("JWT_EXPIRES"),
-    # jwt_algorithm=os.getenv("JWT_ALGORITHM"),
-    clients=[
-        OAuth2Client(
-            backend=HelmholtzOpenIdConnect,
-            client_id=os.getenv("HELMHOLTZ_CLIENT_ID", ""),
-            client_secret=os.getenv("HELMHOLTZ_CLIENT_SECRET", ""),
-            scope=[
-                "openid",
-                "profile",
-                "email",
-                "eduperson_assurance",
-                "voperson_id",
-                "iss",
-            ],
-            claims=Claims(
-                identity=lambda user: f"{user.provider}:{user.sub}",
-            ),
-        ),
-        OAuth2Client(
-            backend=EGIOpenIdConnect,
-            client_id=os.getenv("EGI_CLIENT_ID", ""),
-            client_secret=os.getenv("EGI_CLIENT_SECRET", ""),
-            scope=["openid", "profile", "email", "eduperson_assurance"],
-            claims=Claims(
-                identity=lambda user: f"{user.provider}:{user.sub}",
-                # identity=lambda user: f"{os.getenv('EGI_ISS')}@{user.sub}",
-            ),
-        ),
-        OAuth2Client(
-            backend=MyGoogleOAuth2,
-            client_id=os.getenv("GOOGLE_CLIENT_ID", ""),
-            client_secret=os.getenv("GOOGLE_CLIENT_SECRET", ""),
-            scope=["openid", "profile", "email"],
-            claims=Claims(
-                identity=lambda user: f"{user.provider}:{user.sub}",
-                # identity=lambda user: f"{os.getenv('GOOGLE_ISS', "")}@{user.sub}",
-            ),
-        ),
-        OAuth2Client(
-            backend=VegaKeycloakOpenIdConnect,
-            client_id=os.getenv("VEGA_CLIENT_ID", ""),
-            client_secret=os.getenv("VEGA_CLIENT_SECRET", ""),
-            scope=[
-                "openid",
-                "profile",
-                "email",
-                "address",
-                "microprofile-jwt",
-                "roles",
-                "web-origins",
-                "offline_access",
-                "phone",
-                "acr",
-            ],
-            claims=Claims(
-                identity=lambda user: f"{user.provider}:{user.sub}",
-                generated_username=lambda user: f"{user.upn}",
-            ),
-        ),
-        OAuth2Client(
-            backend=FelsInternalOpenIdConnect,
-            client_id=os.getenv("FELS_CLIENT_ID", ""),
-            client_secret=os.getenv("FELS_CLIENT_SECRET", ""),
-            scope=["openid", "profile", "email"],
-            claims=Claims(
-                identity=lambda user: f"{user.provider}:{user.sub}",
-                generated_username=lambda user: f"{user.sub}",
-                # identity=lambda user: f"{os.getenv('FELS_ISS')}@{user.sub}",
-            ),
-        ),
-    ],
+    clients=configured_clients,
 )
 
 
