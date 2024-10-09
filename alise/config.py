@@ -3,6 +3,7 @@
 import logging
 import os
 from dataclasses import dataclass, fields, field
+from typing import List, Optional, Dict
 from typing import Optional, List
 from pathlib import Path
 from configparser import ConfigParser
@@ -23,6 +24,37 @@ logger = logging.getLogger(__name__)
 #
 #  if PARSE_CMDLINE_PARAMETERS:
 #      from ldf_adapter.cmdline_params import args
+
+
+
+
+# class Config:
+#     """Class for motley_cue configuration."""
+#
+#     def __init__(self, config_parser):
+#         """Create a configuration object from a ConfigParser.
+#
+#         Args:
+#             config_parser (ConfigParser): ConfigParser object
+#
+#         Raises:
+#             InternalException: if configuration does not contain mandatory section [mapper]
+#         """
+#         self.CONFIG = Configuration.load(config_parser)
+#
+#         self.__trusted_ops = [
+#             entry.op_url for entry in sel.CONFIG.auth.all_op_authz.values()
+#         ]
+#         self.__info_ops = {
+#             canonical_url(entry.op_url): entry.get_info()
+#             for entry in self.CONFIG.auth.all_op_authz.values()
+#         }
+#
+#     @property
+#     def auth(self):
+#         """Return all auth sections in configuration"""
+#         return self.CONFIG.auth
+
 
 
 class MyConfigParser(ConfigParser):
@@ -117,7 +149,7 @@ def reload_parser():
     ]
 
     config_loaded = False
-    cp = MyConfigParser(interpolation=ExtendedInterpolation())
+    cp = ConfigParser(interpolation=ExtendedInterpolation())
     for f in files:
         # print(F"tryng to load config: {f}")
         try:
@@ -176,49 +208,57 @@ def reload_parser():
 @dataclass
 class ConfigSection:
     @classmethod
-    def __section__name__(cls):
+    def __section__name__(cls) -> str:
         return "DEFAULT"
 
     @classmethod
-    def load(cls, config: MyConfigParser):
+    def load(cls, config: ConfigParser, section_name: Optional[str] = None):
         """Sets only the fields that are present in the config file"""
         try:
-            return cls(**config[cls.__section__name__()])
-        except KeyError:
-            logger.debug(
-                "Missing config section %s, using default values.",
-                cls.__section__name__(),
+            if section_name is None:
+                section_name = cls.__section__name__()
+            field_names = set(f.name for f in fields(cls))
+            return cls(
+                **{
+                    k: v
+                    for k, v in {**config[section_name]}.items()
+                    if k in field_names
+                }
             )
+        except KeyError:
+            # logger.debug(
+            #     "Missing config section %s, using default values.", cls.__section__name__()
+            # )
             return cls()
 
     def __post_init__(self):
         """Converts some of the fields to the correct type"""
-        for fld in fields(self):
-            value = getattr(self, fld.name)
+        for field in fields(self):
+            value = getattr(self, field.name)
             if value is None:
                 continue
-            field_type = fld.type
-            if fld.type.__module__ == "typing":
-                if fld.type.__str__().startswith(
+            field_type = field.type
+            if hasattr(field.type, "__module__") and field.type.__module__ == "typing":
+                if field.type.__str__().startswith(
                     "typing.Optional"
-                ) or fld.type.__str__().startswith("typing.Union"):
-                    field_type = fld.type.__args__[0]  # get the type of the fld
-                elif fld.type.__str__().startswith("typing.List"):
+                ) or field.type.__str__().startswith("typing.Union"):
+                    field_type = field.type.__args__[0]  # pyright: ignore
+                elif field.type.__str__().startswith("typing.List"):
                     field_type = list  # treat as a list
                 else:
                     return  # no conversion
-            # if the fld does not have the hinted type, convert it if possible
-            if not isinstance(value, field_type):
+            # if the field does not have the hinted type, convert it if possible
+            if not isinstance(value, field_type):  # pyright: ignore
                 if field_type == int:
-                    setattr(self, fld.name, to_int(value))
+                    setattr(self, field.name, to_int(value))
                 if field_type == bool:
-                    setattr(self, fld.name, to_bool(value))
+                    setattr(self, field.name, to_bool(value))
                 if field_type in [List, List[str], list]:
-                    setattr(self, fld.name, to_list(value))
+                    setattr(self, field.name, to_list(value))
 
     def to_dict(self) -> dict:
         """Converts the config to a dict"""
-        return {fld.name: getattr(self, fld.name) for fld in fields(self)}
+        return {field.name: getattr(self, field.name) for field in fields(self)}
 
 
 @dataclass
@@ -271,6 +311,79 @@ class ConfigDatabase(ConfigSection):
         return "database"
 
 
+
+@dataclass
+class ConfigOPConf(ConfigSection):
+    """Config section for authorisation of one OP."""
+
+    op_url: str = ""
+    client_id: str = ""
+    client_secret: str = ""
+    claims: list = field(default_factory=list)
+    internal: bool = False
+    scopes: list = field(default_factory=list)
+
+    def get_info(self) -> dict:
+        """Returns a dict with the info for this OP"""
+        op_info = {
+            "op_url": self.op_url,
+            "scopes": self.scopes,
+        }
+        if self.audience and self.audience != "":
+            op_info["audience"] = self.audience
+        return op_info
+
+def canonical_url(url: str) -> str:
+    """Strip URL of protocol info and ending slashes"""
+    url = url.lower()
+    if url.startswith("http://"):
+        url = url[7:]
+    if url.startswith("https://"):
+        url = url[8:]
+    if url.startswith("www."):
+        url = url[4:]
+    if url.endswith("/"):
+        url = url[:-1]
+    return url
+
+@dataclass
+class ConfigAuth:
+    """All authorisation configs for all supported OPs."""
+
+    all_op_authz: Dict[str, ConfigOPConf] = field(default_factory=dict)
+
+    @classmethod
+    def load(cls, config: ConfigParser):
+        """Loads all config sub-sections that start with the given section name"""
+        subsection_prefix = "auth"
+        # all_op_authz = {}
+        cls.all_op_authz = {}
+        for section in config.sections():
+            if section.startswith(f"{subsection_prefix}."):
+                config_name = section.replace(subsection_prefix +'.',"")
+                op_config = ConfigOPConf.load(config, section_name=section)
+                cls.all_op_authz[config_name] = op_config
+        return cls(cls.all_op_authz)
+
+    def to_dict(self) -> dict:
+        """Converts the config to a dict"""
+        return {k: v.to_dict() for k, v in self.all_op_authz.items()}
+
+    def get_op_names(self) -> List:
+        return self.all_op_authz.keys()
+
+    def get_op_config(self, config_name) -> ConfigOPConf:
+        """Returns the ConfigOPConf object for OP given in user_infos.
+
+        Args:
+            user_infos: (flaat) UserInfo object
+
+        Returns:
+            Optional[OPAuthZ]: OPAuthZ object
+        """
+        return self.all_op_authz.get(config_name)
+
+
 @dataclass
 class Configuration:
     """All configuration settings for the alise"""
@@ -279,6 +392,7 @@ class Configuration:
     oidc: ConfigOIDC = field(default_factory=ConfigOIDC)
     database: ConfigDatabase = field(default_factory=ConfigDatabase)
     test: ConfigTest = field(default_factory=ConfigTest)
+    auth: ConfigAuth = field(default_factory=ConfigAuth)
 
     @classmethod
     def load(cls, config: ConfigParser):
