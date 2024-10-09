@@ -26,8 +26,6 @@ logger = logging.getLogger(__name__)
 #      from ldf_adapter.cmdline_params import args
 
 
-
-
 # class Config:
 #     """Class for motley_cue configuration."""
 #
@@ -54,7 +52,6 @@ logger = logging.getLogger(__name__)
 #     def auth(self):
 #         """Return all auth sections in configuration"""
 #         return self.CONFIG.auth
-
 
 
 class MyConfigParser(ConfigParser):
@@ -218,13 +215,7 @@ class ConfigSection:
             if section_name is None:
                 section_name = cls.__section__name__()
             field_names = set(f.name for f in fields(cls))
-            return cls(
-                **{
-                    k: v
-                    for k, v in {**config[section_name]}.items()
-                    if k in field_names
-                }
-            )
+            return cls(**{k: v for k, v in {**config[section_name]}.items() if k in field_names})
         except KeyError:
             # logger.debug(
             #     "Missing config section %s, using default values.", cls.__section__name__()
@@ -311,7 +302,6 @@ class ConfigDatabase(ConfigSection):
         return "database"
 
 
-
 @dataclass
 class ConfigOPConf(ConfigSection):
     """Config section for authorisation of one OP."""
@@ -334,6 +324,7 @@ class ConfigOPConf(ConfigSection):
             op_info["audience"] = self.audience
         return op_info
 
+
 def canonical_url(url: str) -> str:
     """Strip URL of protocol info and ending slashes"""
     url = url.lower()
@@ -346,6 +337,7 @@ def canonical_url(url: str) -> str:
     if url.endswith("/"):
         url = url[:-1]
     return url
+
 
 @dataclass
 class ConfigAuth:
@@ -361,7 +353,7 @@ class ConfigAuth:
         cls.all_op_authz = {}
         for section in config.sections():
             if section.startswith(f"{subsection_prefix}."):
-                config_name = section.replace(subsection_prefix +'.',"")
+                config_name = section.replace(subsection_prefix + ".", "")
                 op_config = ConfigOPConf.load(config, section_name=section)
                 cls.all_op_authz[config_name] = op_config
         return cls(cls.all_op_authz)
