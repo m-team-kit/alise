@@ -31,16 +31,20 @@ CONFIG_KEY_MAP = {
     # apparently not used: = rsp.json()["introspection_endpoint"]
 }
 
+
 def make_oidc_config_class_google(op_name):
     class NewClass(GoogleOAuth2):
         OIDC_ENDPOINT = os.getenv("GOOGLE_ISS", "")
         provider_type = "external"
+
     return NewClass
+
 
 def make_oidc_config_class(op_name, op_config):
     class NewClass(OpenIdConnectAuth):
         def setting(self, op_name, default=None):
             return getattr(self, op_name, default)
+
     try:
         ## Sonderlocke for google
         if op_config.op_url.startswith("https://accounts.google.com"):
@@ -48,7 +52,7 @@ def make_oidc_config_class(op_name, op_config):
 
         NewClass.__name__ = op_name
         NewClass.name = op_name
-        NewClass.name=op_name
+        NewClass.name = op_name
         NewClass.OIDC_ENDPOINT = op_config.op_url
         NewClass.ID_TOKEN_ISSUER = NewClass.OIDC_ENDPOINT
         NewClass.provider_type = "external"
@@ -56,9 +60,11 @@ def make_oidc_config_class(op_name, op_config):
             NewClass.provider_type = "internal"
     except AttributeError as e:
         logger.warning(f"Cannot find attribute for {op_name}: {e}")
-    
+
     ## Autoconf
-    autoconf = requests.get(NewClass.OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15).json()
+    autoconf = requests.get(
+        NewClass.OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15
+    ).json()
     try:
         NewClass.ACCESS_TOKEN_URL = autoconf["token_endpoint"]
         NewClass.AUTHORIZATION_URL = autoconf["authorization_endpoint"]
@@ -67,23 +73,24 @@ def make_oidc_config_class(op_name, op_config):
         NewClass.JWKS_URI = autoconf["jwks_uri"]
     except KeyError as e:
         logger.warning(f"Cannot find {e} for {op_name}")
-    return NewClass 
+    return NewClass
 
 
 def make_oidc_config(op_name):
-    op_config=CONFIG.auth.get_op_config(op_name)
-    backend=make_oidc_config_class(op_name, op_config)
-    client= OAuth2Client(
-            backend=backend,
-            client_id=op_config.client_id,
-            client_secret=op_config.client_secret,
-            scope=op_config.scopes,
-            claims=Claims(
-                identity=lambda user: f"{user.provider}:{user.sub}",
-                generated_username=lambda user: f"{user.get(op_config.username_claim)}",
-            ),
-        )
+    op_config = CONFIG.auth.get_op_config(op_name)
+    backend = make_oidc_config_class(op_name, op_config)
+    client = OAuth2Client(
+        backend=backend,
+        client_id=op_config.client_id,
+        client_secret=op_config.client_secret,
+        scope=op_config.scopes,
+        claims=Claims(
+            identity=lambda user: f"{user.provider}:{user.sub}",
+            generated_username=lambda user: f"{user.get(op_config.username_claim)}",
+        ),
+    )
     return client
+
 
 # vega:                generated_username=lambda user: f"{user.upn}",
 # fels:                generated_username=lambda user: f"{user.sub}",
