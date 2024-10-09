@@ -12,47 +12,6 @@ from alise.parse_args import args
 
 logger = logging.getLogger(__name__)
 
-### Try this at a later point
-#  PARSE_CMDLINE_PARAMETERS = True
-#  if "pytest" in sys.modules:
-#      PARSE_CMDLINE_PARAMETERS = False
-#  else:
-#      try:
-#          PARSE_CMDLINE_PARAMETERS = globalconfig.config["parse_commandline_args"]
-#      except KeyError as e:
-#          pass
-#
-#  if PARSE_CMDLINE_PARAMETERS:
-#      from ldf_adapter.cmdline_params import args
-
-
-# class Config:
-#     """Class for motley_cue configuration."""
-#
-#     def __init__(self, config_parser):
-#         """Create a configuration object from a ConfigParser.
-#
-#         Args:
-#             config_parser (ConfigParser): ConfigParser object
-#
-#         Raises:
-#             InternalException: if configuration does not contain mandatory section [mapper]
-#         """
-#         self.CONFIG = Configuration.load(config_parser)
-#
-#         self.__trusted_ops = [
-#             entry.op_url for entry in sel.CONFIG.auth.all_op_authz.values()
-#         ]
-#         self.__info_ops = {
-#             canonical_url(entry.op_url): entry.get_info()
-#             for entry in self.CONFIG.auth.all_op_authz.values()
-#         }
-#
-#     @property
-#     def auth(self):
-#         """Return all auth sections in configuration"""
-#         return self.CONFIG.auth
-
 
 class MyConfigParser(ConfigParser):
     def getlist(self, section, option, fallback=None):
@@ -306,6 +265,7 @@ class ConfigDatabase(ConfigSection):
 class ConfigOPConf(ConfigSection):
     """Config section for authorisation of one OP."""
 
+    audience: str
     op_url: str = ""
     client_id: str = ""
     client_secret: str = ""
@@ -323,20 +283,6 @@ class ConfigOPConf(ConfigSection):
         if self.audience and self.audience != "":
             op_info["audience"] = self.audience
         return op_info
-
-
-def canonical_url(url: str) -> str:
-    """Strip URL of protocol info and ending slashes"""
-    url = url.lower()
-    if url.startswith("http://"):
-        url = url[7:]
-    if url.startswith("https://"):
-        url = url[8:]
-    if url.startswith("www."):
-        url = url[4:]
-    if url.endswith("/"):
-        url = url[:-1]
-    return url
 
 
 @dataclass
