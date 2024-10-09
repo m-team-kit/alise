@@ -49,15 +49,13 @@ app.mount("/static", StaticFiles(directory=static_path), name="static")
 # app.add_middleware(SSROAuth2Middleware, config=oauth2_config, callback=on_auth)
 app.add_middleware(SSROAuth2Middleware, config=oauth2_config)
 
-logger.debug("===============================================================")
-
 
 def main():
     """Console script for alise."""
-    logger.debug("This is just a test for 'debug'")
-    logger.info("This is just a test for 'info'")
-    logger.warning("This is just a test for 'warning'")
-    logger.error("This is just a test for 'error'")
+    # logger.debug("This is just a test for 'debug'")
+    # logger.info("This is just a test for 'info'")
+    # logger.warning("This is just a test for 'warning'")
+    # logger.error("This is just a test for 'error'")
 
     # uvicorn.run(root, host="0.0.0.0", port=4711)
     # uvicorn.run(root, host="0.0.0.0", port=8000, log_level="info")
