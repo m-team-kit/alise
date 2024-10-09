@@ -44,7 +44,8 @@ Then point your browser to <http://localhost:8000>
 
 ### Nginx
 
-We provide an nginx configuration file in `alise/etc/nginx.alise`. Simply
+We provide an nginx configuration file in `alise/etc/nginx.alise`
+([github](https://github.com/m-team-kit/alise/tree/master/alise/etc)). Simply
 copy or it to nginx like:
 
 ```bash
@@ -53,7 +54,8 @@ ln -s $PWD/alise/etc/nginx.alise /etc/nginx/sites-enabled
 
 ## Systemd
 
-We provide a systemd service file in `alise/etc/alise.service`. Simply
+We provide a systemd service file in `alise/etc/alise.service`
+([github](https://github.com/m-team-kit/alise/tree/master/alise/etc)). Simply
 copy link it to systemd like:
 
 ```bash
@@ -67,5 +69,5 @@ systemctl start alise.service
 ## Configuration
 
 ALISE is configured via a single config file. A template is provided in
-`alise/etc/alise.conf`. It should be self-explanatory.
+`alise/etc/alise.conf`([github](https://github.com/m-team-kit/alise/tree/master/alise/etc)). It should be self-explanatory.
 
