@@ -42,6 +42,7 @@ def make_oidc_config_class_google(op_name):
 
 def make_oidc_config_class(op_name, op_config):
     class NewClass(OpenIdConnectAuth):
+        provider_type: str
         def setting(self, op_name, default=None):
             return getattr(self, op_name, default)
 
