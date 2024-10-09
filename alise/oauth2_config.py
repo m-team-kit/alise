@@ -80,10 +80,13 @@ def make_oidc_config(op_name):
             scope=op_config.scopes,
             claims=Claims(
                 identity=lambda user: f"{user.provider}:{user.sub}",
-                generated_username=lambda user: f"{user.upn}",
+                generated_username=lambda user: f"{user.get(op_config.username_claim)}",
             ),
         )
     return client
+
+# vega:                generated_username=lambda user: f"{user.upn}",
+# fels:                generated_username=lambda user: f"{user.sub}",
 
 
 configured_clients = []
