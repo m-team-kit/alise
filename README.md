@@ -35,8 +35,10 @@ apt install gunicorn
 
 ```bash
 # from the dir where alise is installed:
-gunicorn alise.daemon:app
+gunicorn alise.daemon:app -k "uvicorn.workers.UvicornWorker"
 ```
+
+Then point your browser to <http://localhost:8000>
 
 ## Run as a service
 
@@ -64,13 +66,6 @@ systemctl start alise.service
 
 ## Configuration
 
-ALISE is configured via two files:
+ALISE is configured via a single config file. A template is provided in
+`alise/etc/alise.conf`. It should be self-explanatory.
 
-- `/etc/alise/alise.conf`:
-    - Logging
-    - Location of `oidc.conf`
-    - Template provided
-
-- `/etc/alise/oidc.conf`
-    - OIDC Providers
-    - Template provided
