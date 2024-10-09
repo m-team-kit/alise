@@ -52,7 +52,7 @@ copy or it to nginx like:
 ln -s $PWD/alise/etc/nginx.alise /etc/nginx/sites-enabled
 ```
 
-## Systemd
+### Systemd
 
 We provide a systemd service file in `alise/etc/alise.service`
 ([github](https://github.com/m-team-kit/alise/tree/master/alise/etc)). Simply
@@ -64,6 +64,15 @@ systemctl daemon-reload
 systemctl enable alise.service
 systemctl start alise.service
 ```
+
+### Static HTML
+
+Place content of `alise/static` to place that nginx can serve as `/static`
+
+### Icon
+
+Place an icon of your site into `/static/<name of your sites config entry`.svg
+(Yep that's a bit hacky)
 
 
 ## Configuration
