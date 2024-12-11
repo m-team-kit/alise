@@ -14,9 +14,10 @@ The following replacements are made:
 - Deprecated
 - Return all mappings that match a given `sub + iss` pair
 
-## `/api/v1/target/{site}/mapping/issuer/{encoded_iss}/user/{encoded_sub}`
+## `/api/v1/target/{site}/mapping/issuer/{encoded_iss}/user/{encoded_sub}?apikey=<apikey>`
 
 - Return all mappings that match a given `sub + iss` pair
+- Pass the `apikey` as a URL parameter
 
 ## `/api/v1/version`
 
