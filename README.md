@@ -7,6 +7,14 @@
 
 Tool to link accounts
 
+The Account LInking SErvice ALISE implements the concept of site-local account linking. For this a user can log in with one **local** account and with any number of supported **external** accounts (e.g. Helmholtz-ID and Google). The local account is on at an HPC centre, which also comprises the Unix-User name.
+
+Federated services can use this informatin whenever they need to map a federated identity to a local Unix account at a computer centre.
+
+Examples for this are http/webDAV file access. WeDAV supports Basic Authentication, which is transported via an OIDC Access Token to convey the federated users' identity. The server needs to store the uploaded data with a specific account name, such that the same user could later access the uploaded date from e.g. computing jobs on that same server.
+
+Alise may be used to ask users for linking their federatd identity to a local one, so that the webDAV server could find the users' corresponding local unix ID.
+
 ## Installation
 
 Account LInking SErvice is available on [PyPI](https://pypi.org/project/alise/). Install using `pip`:
