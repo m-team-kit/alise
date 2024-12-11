@@ -37,6 +37,8 @@ flaat.set_trusted_OP_list(
         "https://aai-demo.egi.eu/auth/realms/egi",
         "https://accounts.google.com/",
         "https://login.helmholtz.de/oauth2/",
+        "https://keycloak-dev.apps.paas-dev.psnc.pl/auth/realms/devops",
+        "https://keycloak-dev.apps.paas-dev.psnc.pl/auth/realms/psnc-ldap-externals"
     ]
 )
 flaat.set_verbosity(3)
@@ -156,6 +158,7 @@ def all_my_mappings_raw(
         raise exceptions.InternalException("Could not find user infos")
     # logger.info(user_infos.toJSON())
     logger.info(type(user_infos))
+    # response = JSONResponse({"key": "value"})
     response = JSONResponse({"key": "value"})
     return response
 
