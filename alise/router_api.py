@@ -24,6 +24,7 @@ from alise.oauth2_config import get_provider_name_sub_by_identity
 from alise.oauth2_config import get_providers_long
 
 from alise.models import DatabaseUser
+from alise.config import CONFIG
 
 VERSION = "1.0.5"
 # app = FastAPI()
@@ -31,16 +32,17 @@ flaat = Flaat()
 security = HTTPBearer()
 router_api = APIRouter(prefix="/api/v1")
 
-flaat.set_trusted_OP_list(
-    [
-        "https://aai.egi.eu/auth/realms/egi",
-        "https://aai-demo.egi.eu/auth/realms/egi",
-        "https://accounts.google.com/",
-        "https://login.helmholtz.de/oauth2/",
-        "https://keycloak-dev.apps.paas-dev.psnc.pl/auth/realms/devops",
-        "https://keycloak-dev.apps.paas-dev.psnc.pl/auth/realms/psnc-ldap-externals"
-    ]
-)
+trusted_OP_list = []
+for op_name in CONFIG.auth.get_op_names():
+    op_config = CONFIG.auth.get_op_config(op_name)
+    trusted_OP_list.append(op_config.op_url)
+
+logger.debug("Trusted OPs:")
+for op in trusted_OP_list:
+    logger.debug(f"  {op}")
+
+
+flaat.set_trusted_OP_list(trusted_OP_list)
 flaat.set_verbosity(3)
 
 
