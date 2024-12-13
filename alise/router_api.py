@@ -48,6 +48,7 @@ flaat.set_verbosity(3)
 
 def fill_json_response(user):
     response_json = Dict()
+    # logger.debug(F"user.int_id.identity: {user.int_id.identity}")
     int_sub, int_iss = get_sub_iss_by_identity(user.int_id.identity)
     response_json.internal.sub = int_sub
     response_json.internal.iss = int_iss
@@ -58,6 +59,7 @@ def fill_json_response(user):
     response_json.external = []
     for e in user.ext_ids:
         response_json.external.append(Dict())
+        # logger.debug(F"e.identity: {e.identity}")
         ext_sub, ext_iss = get_sub_iss_by_identity(e.identity)
         response_json.external[-1].sub = ext_sub
         response_json.external[-1].iss = ext_iss
@@ -116,23 +118,24 @@ def get_mappings_path(request: Request, site: str, encoded_iss: str, encoded_sub
     logger.info(f"Site:     {site}")
     (sub, iss, provider_name, identity) = decode_input(encoded_sub, encoded_iss)
 
-    user = DatabaseUser(site)
-    if not user.apikey_valid(apikey):
-        return JSONResponse(
-            {"detail": [{"msg": "invalid apikey", "type": "invalid"}]}, status_code=401
-        )
+    try:
+        user = DatabaseUser(site)
+        if not user.apikey_valid(apikey):
+            return JSONResponse(
+                {"detail": [{"msg": "invalid apikey", "type": "invalid"}]}, status_code=401
+            )
 
-    session_id = user.get_session_id_by_user_id(identity, "external")
-    logger.info(f"session_id:{session_id}")
+        session_id = user.get_session_id_by_user_id(identity, "external")
+        if not session_id:
+            return JSONResponse(
+                {"detail": [{"msg": "no such user", "type": "not-mapped"}]}, status_code=401
+            )
 
-    if not session_id:
-        return JSONResponse(
-            {"detail": [{"msg": "no such user", "type": "not-mapped"}]}, status_code=401
-        )
-
-    user.load_all_identities(session_id)
-
-    return fill_json_response(user)
+        user.load_all_identities(session_id)
+        return fill_json_response(user)
+    except Exception as E:
+        # raise
+        return JSONResponse({"error": str(E)})
 
 
 @router_api.get("/version")
@@ -150,19 +153,26 @@ def authenticated(
     return "This worked: there was a valid login"
 
 
-@router_api.get("/all_my_mappings_raw")
+@router_api.get("/{site}/all_my_mappings_raw")
 # @flaat.is_authenticated()
 def all_my_mappings_raw(
-    request: Request,
+        request: Request, site: str
 ):
-    user_infos = flaat.get_user_infos_from_request(request)
-    if user_infos is None:
-        raise exceptions.InternalException("Could not find user infos")
-    # logger.info(user_infos.toJSON())
-    logger.info(type(user_infos))
-    # response = JSONResponse({"key": "value"})
-    response = JSONResponse({"key": "value"})
-    return response
+    try:
+        user_infos = flaat.get_user_infos_from_request(request)
+        if user_infos is None:
+            raise exceptions.InternalException("Could not find user infos")
+
+        provider_short_name = get_provider_name_by_iss(user_infos.issuer)
+        sub = user_infos.subject
+        user = DatabaseUser(site)
+        session_id = user.get_session_id_by_user_id(F"{provider_short_name}:{sub}")
+
+        user.load_all_identities(session_id)
+        return fill_json_response(user)
+    except Exception as E:
+        # raise
+        return JSONResponse({"error": str(E)})
 
 
 def randomword(length):
