@@ -72,7 +72,7 @@ async def site(request: Request, site: str):
     # favicon
     if site == "favicon.ico":
         logger.debug("Returning favicon.ico")
-        return FileResponse("static/favicon.ico")
+        return FileResponse("alise/static/favicon.ico")
 
     # logging
     session_logger(request)
