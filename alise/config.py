@@ -266,12 +266,14 @@ class ConfigOPConf(ConfigSection):
     """Config section for authorisation of one OP."""
 
     op_url: str = ""
+    op_config_url: str = ""
     client_id: str = ""
     client_secret: str = ""
     claims: list = field(default_factory=list)
     internal: bool = False
     scopes: list = field(default_factory=list)
     username_claim: str = "sub"
+    ignore_ssl_errors: bool = False
 
     def get_info(self) -> dict:
         """Returns a dict with the info for this OP"""
