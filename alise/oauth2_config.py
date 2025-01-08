@@ -6,6 +6,7 @@ from sys import exit
 import requests
 from dotenv import load_dotenv
 import hashlib
+import json
 
 # from social_core.backends.github import GithubOAuth2
 from social_core.backends.google import GoogleOAuth2
@@ -20,6 +21,8 @@ from fastapi_oauth2.client import OAuth2Client
 from alise.config import CONFIG
 from alise.logsetup import logger
 from alise import exceptions
+
+from ssl import SSLCertVerificationError
 
 
 CONFIG_KEY_MAP = {
@@ -54,6 +57,9 @@ def make_oidc_config_class(op_name, op_config):
         NewClass.__name__ = op_name
         NewClass.name = op_name
         NewClass.name = op_name
+        if op_config.op_url is None:
+            logger.error(f"trying to configure op without issuer url: {op_name}")
+            raise exceptions.InternalException(f"trying to configure op without issuer url: {op_name}")
         NewClass.OIDC_ENDPOINT = op_config.op_url
         NewClass.ID_TOKEN_ISSUER = NewClass.OIDC_ENDPOINT
         NewClass.provider_type = "external"
@@ -63,9 +69,19 @@ def make_oidc_config_class(op_name, op_config):
         logger.warning(f"Cannot find attribute for {op_name}: {e}")
 
     ## Autoconf
-    autoconf = requests.get(
-        NewClass.OIDC_ENDPOINT + "/.well-known/openid-configuration", timeout=15
-    ).json()
+    autoconf_url = op_config.op_url + "/.well-known/openid-configuration"
+    if op_config.op_config_url is not "":
+        logger.debug(F"setting manual config URL for {op_name}: {op_config.op_config_url}")
+        autoconf_url = op_config.op_config_url
+    try:
+        autoconf = requests.get(autoconf_url , timeout=15).json()
+    except (SSLCertVerificationError, requests.exceptions.SSLError) as e:
+        if op_config.ignore_ssl_errors is True:
+            logger.warning(f"Ignoring existing SSL Errors with {op_name}")
+            autoconf = requests.get(autoconf_url , timeout=15, verify=False).json()
+        else:
+            logger.error(f"SSL Error with {op_name}: {e}")
+            raise e
     try:
         NewClass.ACCESS_TOKEN_URL = autoconf["token_endpoint"]
         NewClass.AUTHORIZATION_URL = autoconf["authorization_endpoint"]
@@ -74,6 +90,11 @@ def make_oidc_config_class(op_name, op_config):
         NewClass.JWKS_URI = autoconf["jwks_uri"]
     except KeyError as e:
         logger.warning(f"Cannot find {e} for {op_name}")
+    ## extra debug for kbfi:
+    if op_name == "kbfi":
+        jsonstr = json.dumps(autoconf, sort_keys=True, indent=4)
+        logger.debug(F"Autoconf:\n{jsonstr}")
+        logger.debug(F"op_url: {op_config.op_url}")
     return NewClass
 
 
