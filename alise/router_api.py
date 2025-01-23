@@ -26,7 +26,7 @@ from alise.oauth2_config import get_providers_long
 from alise.models import DatabaseUser
 from alise.config import CONFIG
 
-VERSION = "1.0.5"
+VERSION = "1.0.5-simpl-saml"
 # app = FastAPI()
 flaat = Flaat()
 security = HTTPBearer()
