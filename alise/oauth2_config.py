@@ -103,8 +103,8 @@ def make_oidc_config(op_name):
         logger.debug(F"claim: {op_config.username_claim=}")
         for key,value in user.items():
             logger.debug(F"   user.{key} = {value}")
-        logger.debug(F"{user.get("eppn")=}")
-        return user.get("eppn")
+        logger.debug(F"{user.get(op_config.username_claim)=}")
+        return user.get(op_config.username_claim)
     op_config = CONFIG.auth.get_op_config(op_name)
     backend = make_oidc_config_class(op_name, op_config)
     logger.debug(f"going to generate_username:")
