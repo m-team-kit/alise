@@ -94,6 +94,17 @@ def make_oidc_config_class(op_name, op_config):
 
 
 def make_oidc_config(op_name):
+    # def logged1_lambda(user):
+    #     logger.debug(F"{user.sub=}")
+    #     logger.debug(F"{user.provider}:{user.sub}")
+    #     return F"{user.provider}:{user.sub}"
+    # def generate_username(user):
+    #     logger.debug(F"generating username")
+    #     logger.debug(F"claim: {op_config.username_claim=}")
+    #     for key,value in user.items():
+    #         logger.debug(F"   user.{key} = {value}")
+    #     logger.debug(F"{user.get("eppn")=}")
+    #     return user.get("eppn")
     op_config = CONFIG.auth.get_op_config(op_name)
     backend = make_oidc_config_class(op_name, op_config)
     logger.debug(f"going to generate_username:")
@@ -110,6 +121,10 @@ def make_oidc_config(op_name):
         ),
     )
     return client
+            # identity=lambda user: logged1_lambda(user),
+            # generated_username=lambda user: generate_username(user),
+            # identity=lambda user: f"{user.provider}:{user.sub}",
+            # generated_username=lambda user: f"{user.get(op_config.username_claim)}",
 
 
 # vega:                generated_username=lambda user: f"{user.upn}",
