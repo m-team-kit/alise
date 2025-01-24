@@ -48,7 +48,7 @@ def session_logger(request):
     logger.info(f"-[{ip}]-[Cookies]")
     for i in ["Authorization", "session_id", "redirect_uri"]:
         # for i in ["session_id", "redirect_uri"]:
-        logger.info(f"-[{ip}]    {i:13}- {request.cookies.get(i, '')}")
+        logger.info(f"-[{ip}]    {i:13}- {request.cookies.get(i, '')[0:60]}")
     logger.info(f"-[{ip}]- [Authenticated]: {request.user.is_authenticated}")
     if request.user.is_authenticated:
         provider_type = get_provider_type(request)
