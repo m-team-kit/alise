@@ -10,6 +10,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 import random
 import string
+import sqlite3
 
 from flaat.fastapi import Flaat
 from fastapi import Depends, FastAPI, Request, Response
@@ -177,10 +178,17 @@ def all_my_mappings_raw(
         if not is_internal_site(site):
             raise exceptions.InternalException("Invalid site name")
 
+        logger.debug(F"internal")
         user = DatabaseUser(site)
+        logger.debug("got user")
         session_id = user.get_session_id_by_user_id(F"{provider_short_name}:{sub}")
+        logger.debug("got session")
 
-        user.load_all_identities(session_id)
+        try:
+            user.load_all_identities(session_id)
+        except sqlite3.ProgrammingError as e:
+            raise exceptions.InternalException("No IDs linked")
+
         return fill_json_response(user)
     except Exception as E:
         # raise
