@@ -41,18 +41,19 @@ def get_provider_type(request):
 
 
 def session_logger(request):
-    logger.info(f"----------[{request.url}]------------------------------------------")
+    ip = ip = request.client.host
+    logger.info(f"-[{ip}]---------[{request.url}]------------------------------------------")
     # for attr in dir(request):
     #     logger.info(F"request: {attr:30} - {getattr(request, attr, '')}")
-    logger.info("[Cookies]")
+    logger.info(f"-[{ip}]-[Cookies]")
     for i in ["Authorization", "session_id", "redirect_uri"]:
         # for i in ["session_id", "redirect_uri"]:
-        logger.info(f"    {i:13}- {request.cookies.get(i, '')}")
-    logger.info(f"[Authenticated]: {request.user.is_authenticated}")
+        logger.info(f"-[{ip}]    {i:13}- {request.cookies.get(i, '')}")
+    logger.info(f"-[{ip}]- [Authenticated]: {request.user.is_authenticated}")
     if request.user.is_authenticated:
         provider_type = get_provider_type(request)
-        logger.info(f"    identity: {request.user.identity}")
-        logger.info(f"    provider: {request.auth.provider.provider}," f"  {provider_type}")
+        logger.info(f"-[{ip}]    identity: {request.user.identity}")
+        logger.info(f"-[{ip}]    provider: {request.auth.provider.provider}," f"  {provider_type}")
 
 
 @router_ssr.get("/privacy.html", response_class=HTMLResponse)
@@ -71,8 +72,8 @@ async def site(request: Request, site: str):
 
     # favicon
     if site == "favicon.ico":
-        logger.debug("Returning favicon.ico")
-        return FileResponse("alise/static/favicon.ico")
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        return FileResponse(f"{dir_path}/static/favicon.ico")
 
     # logging
     session_logger(request)
