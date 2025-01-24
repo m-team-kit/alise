@@ -152,6 +152,12 @@ def authenticated(
     user_infos = flaat.get_user_infos_from_request(request)
     return "This worked: there was a valid login"
 
+def is_internal_site(sitename):
+    op_conf = CONFIG.auth.get_op_config(sitename)
+    if op_conf is None:
+        return False
+    op_internal = op_conf.internal
+    return op_internal
 
 @router_api.get("/{site}/all_my_mappings_raw")
 # @flaat.is_authenticated()
@@ -160,11 +166,17 @@ def all_my_mappings_raw(
 ):
     try:
         user_infos = flaat.get_user_infos_from_request(request)
+        logger.debug(F"user_infos:")
+        logger.debug(user_infos)
         if user_infos is None:
             raise exceptions.InternalException("Could not find user infos")
 
         provider_short_name = get_provider_name_by_iss(user_infos.issuer)
+        logger.debug(F"{provider_short_name=}")
         sub = user_infos.subject
+        if not is_internal_site(site):
+            raise exceptions.InternalException("Invalid site name")
+
         user = DatabaseUser(site)
         session_id = user.get_session_id_by_user_id(F"{provider_short_name}:{sub}")
 
