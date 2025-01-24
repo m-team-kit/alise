@@ -90,17 +90,15 @@ def make_oidc_config_class(op_name, op_config):
         NewClass.JWKS_URI = autoconf["jwks_uri"]
     except KeyError as e:
         logger.warning(f"Cannot find {e} for {op_name}")
-    ## extra debug for kbfi:
-    if op_name == "kbfi":
-        jsonstr = json.dumps(autoconf, sort_keys=True, indent=4)
-        logger.debug(F"Autoconf:\n{jsonstr}")
-        logger.debug(F"op_url: {op_config.op_url}")
     return NewClass
 
 
 def make_oidc_config(op_name):
     op_config = CONFIG.auth.get_op_config(op_name)
     backend = make_oidc_config_class(op_name, op_config)
+    logger.debug(f"going to generate_username:")
+    logger.debug(f"{op_name=} - {op_config.username_claim=}")
+    # logger.debug(F"found: {user.get(op_config.username_claim)}")
     client = OAuth2Client(
         backend=backend,
         client_id=op_config.client_id,
