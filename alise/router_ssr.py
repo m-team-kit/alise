@@ -107,10 +107,10 @@ async def site(request: Request, site: str):
 
     # Linkage
     db_session_id = user.get_session_id_by_user_id(request.user.identity, provider_type)
-    if db_session_id != session_id:
-        logger.warning("SESSION ID MISMATCH:")
-        logger.warning(f"    cookie: {session_id}")
-        logger.warning(f"        db: {db_session_id}")
+    # if db_session_id != session_id:
+    #     logger.warning("SESSION ID MISMATCH:")
+    #     logger.warning(f"    cookie: {session_id}")
+    #     logger.warning(f"        db: {db_session_id}")
     if not session_id:
         # if request.user.is_authenticated:
         session_id = request.user.identity
@@ -126,7 +126,7 @@ async def site(request: Request, site: str):
         # request.user.identity = "this is a test"
         user.store_external_user(request.user, session_id)
 
-    logger.warning(f"CHECK SESSION ID!: {session_id}")
+    # logger.warning(f"CHECK SESSION ID!: {session_id}")
     # Linkage done
 
     # Act on linkage
