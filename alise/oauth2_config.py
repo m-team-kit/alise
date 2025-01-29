@@ -37,7 +37,8 @@ CONFIG_KEY_MAP = {
 
 def make_oidc_config_class_google(op_name):
     class NewClass(GoogleOAuth2):
-        OIDC_ENDPOINT = os.getenv("GOOGLE_ISS", "")
+        # needed by alise
+        OIDC_ENDPOINT = "https://accounts.google.com/"
         provider_type = "external"
 
     return NewClass
