@@ -13,8 +13,10 @@ import string
 import sqlite3
 
 from flaat.fastapi import Flaat
+from flaat.requirements import get_claim_requirement
 from fastapi import Depends, FastAPI, Request, Response
 from fastapi.security import HTTPBasicCredentials, HTTPBearer
+import aarc_entitlement
 
 from alise.logsetup import logger
 from alise import exceptions
@@ -207,8 +209,74 @@ def get_apikey(
     site: str,
 ):
     user_infos = flaat.get_user_infos_from_request(request)
+    try:
+        iss = user_infos.access_token_info.body["iss"]
+    except:
+        iss = ""
+    iss_name = get_provider_name_by_iss(iss)
+    if not iss_name:
+        raise exceptions.BadRequest("Can only issue apikeys for OPs that issue jwt Access "\
+                                    "Tokens. Among some, globus and google are known not to support this.")
+    logger.debug(F"{iss=}")
     if user_infos is None:
-        raise exceptions.InternalException("Could not find user infos")
+        raise exceptions.BadRequest("Could not find user infos")
+
+    # Get Authorisation config:
+    op_conf = CONFIG.auth.get_op_config(iss_name)
+    req_entitlements = op_conf.admin_entitlement
+    req_claim = op_conf.admin_entitlement_claim
+    at_entitlements = []
+    ui_entitlements = []
+    is_entitlements = []
+    logger.debug(F"{iss_name=}")
+    logger.debug(F"{req_claim=}")
+    logger.debug(F"{req_entitlements=}")
+    try:
+        at_entitlements = user_infos.access_token_info.body[req_claim]
+    except KeyError:
+        logger.debug("at: keyerror")
+        pass
+    except TypeError:
+        logger.debug("at: typeerror")
+        pass
+    try:
+        ui_entitlements = user_infos.user_info[req_claim]
+    except KeyError:
+        logger.debug("ui: keyerror")
+        pass
+    except TypeError:
+        logger.debug("ui: typeerror")
+        pass
+    try:
+        is_entitlements = user_infos.introspection_info[req_claim]
+    except KeyError:
+        logger.debug("is: keyerror")
+        pass
+    except TypeError:
+        logger.debug("is: typeerror")
+        pass
+    logger.debug(F"{at_entitlements=}")
+    logger.debug(F"{ui_entitlements=}")
+    logger.debug(F"{is_entitlements=}")
+    if isinstance(at_entitlements, str):
+        at_entitlements = [at_entitlements]
+    if isinstance(ui_entitlements, str):
+        ui_entitlements = [ui_entitlements]
+    if isinstance(is_entitlements, str):
+        is_entitlements = [is_entitlements]
+    all_entitlements = at_entitlements + ui_entitlements + is_entitlements
+    logger.debug(F"All Entitlements: \n{'\n'.join(all_entitlements)}")
+    all_entitlements = [x.split('#')[0] for x in all_entitlements]
+    #
+    logger.debug(F"Entitlements: \n{'\n'.join(all_entitlements)}")
+
+    # Check Authorisation:
+    authorised = False
+    for req_e in req_entitlements:
+        if req_e in all_entitlements:
+            authorised = True
+    if not authorised:
+        raise exceptions.Unauthorised("Not authorised")
 
     email = user_infos.get("email")
     username = user_infos.get("name")
