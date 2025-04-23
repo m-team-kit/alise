@@ -228,33 +228,25 @@ def get_apikey(
     at_entitlements = []
     ui_entitlements = []
     is_entitlements = []
-    logger.debug(F"{iss_name=}")
-    logger.debug(F"{req_claim=}")
-    logger.debug(F"{req_entitlements=}")
     try:
         at_entitlements = user_infos.access_token_info.body[req_claim]
     except KeyError:
-        logger.debug("at: keyerror")
         pass
     except TypeError:
-        logger.debug("at: typeerror")
         pass
     try:
         ui_entitlements = user_infos.user_info[req_claim]
     except KeyError:
-        logger.debug("ui: keyerror")
         pass
     except TypeError:
-        logger.debug("ui: typeerror")
         pass
     try:
         is_entitlements = user_infos.introspection_info[req_claim]
     except KeyError:
-        logger.debug("is: keyerror")
         pass
     except TypeError:
-        logger.debug("is: typeerror")
         pass
+    logger.debug(F"{req_entitlements=}")
     logger.debug(F"{at_entitlements=}")
     logger.debug(F"{ui_entitlements=}")
     logger.debug(F"{is_entitlements=}")
@@ -271,12 +263,15 @@ def get_apikey(
     logger.debug(F"Entitlements: \n{'\n'.join(all_entitlements)}")
 
     # Check Authorisation:
-    authorised = False
-    for req_e in req_entitlements:
-        if req_e in all_entitlements:
-            authorised = True
-    if not authorised:
-        raise exceptions.Unauthorised("Not authorised")
+    if req_entitlements != []:
+        logger.debug(F"req_entitlements was not None")
+        logger.debug(F"{req_entitlements=}")
+        authorised = False
+        for req_e in req_entitlements:
+            if req_e in all_entitlements:
+                authorised = True
+        if not authorised:
+            raise exceptions.Unauthorised("Not authorised")
 
     email = user_infos.get("email")
     username = user_infos.get("name")
