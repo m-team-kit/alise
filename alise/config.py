@@ -2,6 +2,7 @@
 
 import logging
 import os
+import json
 from dataclasses import dataclass, fields, field
 from typing import List, Optional, Dict
 from typing import Optional, List
@@ -22,7 +23,7 @@ class MyConfigParser(ConfigParser):
         lines = list(filter(None, (x.strip() for x in value.splitlines())))
         rv = []
         for line in lines:
-            #  logger.info(F"line: {l}")
+            logger.error(F"line: {l}")
             for e in line.split(","):
                 f = e.rstrip(" ").lstrip(" ")
                 rv.append(f)
@@ -58,12 +59,22 @@ def to_list(list_str):
     """Convert a string containing comma-separated strings to list of strings.
     Raise an Exception if the string cannot be converted.
     """
-    try:
-        return list(set(list_str.split()))
-    except ValueError:
-        # FIXME: consider defining and using your own exceptions
-        # pylint: disable = broad-exception-raised, raise-missing-from
-        raise Exception(f"Error converting to list: unrecognised list value {list_str}.")
+    rv=""
+    is_json = False
+    if '[' in list_str:
+        is_json = True
+    if is_json:
+        logger.debug("json")
+        rv = json.loads(list_str)
+    else:
+        logger.debug("not json")
+        try:
+            rv = list(set(list_str.split()))
+        except ValueError:
+            # FIXME: consider defining and using your own exceptions
+            # pylint: disable = broad-exception-raised, raise-missing-from
+            raise Exception(f"Error converting to list: unrecognised list value {list_str}.")
+    return rv
 
 
 def reload_parser():
@@ -274,6 +285,8 @@ class ConfigOPConf(ConfigSection):
     scopes: list = field(default_factory=list)
     username_claim: str = "sub"
     ignore_ssl_errors: bool = False
+    admin_entitlement: list = field(default_factory=list)
+    admin_entitlement_claim: str = ""
 
     def get_info(self) -> dict:
         """Returns a dict with the info for this OP"""
